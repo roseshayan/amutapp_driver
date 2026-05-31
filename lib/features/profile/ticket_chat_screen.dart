@@ -141,7 +141,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
   // انتخاب فایل از گالری یا فایل‌منیجر
   Future<void> _pickAttachment() async {
     try {
-      // 👈 تغییر این خط از FilePicker.pickFiles به ساختار جدید
+      // 👈 تغییر این خط به FilePicker.platform.pickFiles
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'],
@@ -159,9 +159,9 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
     } catch (e) {
       debugPrint('Error picking file: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('خطا در انتخاب فایل: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطا در انتخاب فایل: $e')),
+        );
       }
     }
   }
