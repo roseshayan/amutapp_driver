@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:device_info_plus/device_info_plus.dart'; // پکیج اطلاعات دستگاه
+import 'package:alt_sms_autofill/alt_sms_autofill.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/storage.dart';
@@ -26,11 +27,41 @@ class _OtpScreenState extends State<OtpScreen> {
   Timer? _timer;
   int _start = 120;
   bool _canResend = false;
+  String? _comingSms;
 
   @override
   void initState() {
     super.initState();
     startTimer();
+    _initSmsListener();
+  }
+
+  Future<void> _initSmsListener() async {
+    if (!Platform.isAndroid) return;
+
+    try {
+      AltSmsAutofill().listenForSms.then((value) {
+        if (value != null && mounted) {
+          debugPrint("SMS Received: $value");
+          // استخراج کد ۶ رقمی با ریجکس
+          // قالب: code : 123456
+          final RegExp regExp = RegExp(r"code\s*:\s*(\d{6})");
+          final match = regExp.firstMatch(value);
+          if (match != null) {
+            final code = match.group(1);
+            if (code != null) {
+              setState(() {
+                _otpCtrl.text = code;
+              });
+              // ارسال خودکار برای تایید
+              _verify();
+            }
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint("Sms listener error: $e");
+    }
   }
 
   void startTimer() {
@@ -214,6 +245,9 @@ class _OtpScreenState extends State<OtpScreen> {
   void dispose() {
     _timer?.cancel();
     _otpCtrl.dispose();
+    if (Platform.isAndroid) {
+      AltSmsAutofill().unregisterListener();
+    }
     super.dispose();
   }
 

@@ -111,15 +111,6 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  String _fixLocalUrl(String url) {
-    if (url.isEmpty) return url;
-    if (url.contains('amutbar-admin.test')) {
-      // آدرس رو مستقیماً از فایل constants می‌خونه
-      return url.replaceAll('http://amutbar-admin.test', AppConstants.baseUrl);
-    }
-    return url;
-  }
-
   Future<void> _bootApplication() async {
     if (_isBooting || _dataLoaded) return;
     _isBooting = true;
@@ -136,10 +127,10 @@ class _SplashScreenState extends State<SplashScreen>
 
       // اصلاح لینک‌ها (لوگو و فاوآیکون)
       if (info['logo_url'] != null) {
-        info['logo_url'] = _fixLocalUrl(info['logo_url'].toString());
+        info['logo_url'] = AppConstants.fixUrl(info['logo_url'].toString());
       }
       if (info['favicon_url'] != null) {
-        info['favicon_url'] = _fixLocalUrl(info['favicon_url'].toString());
+        info['favicon_url'] = AppConstants.fixUrl(info['favicon_url'].toString());
       }
 
       AppInfoCache.setRaw(info);
@@ -196,9 +187,9 @@ class _SplashScreenState extends State<SplashScreen>
         final int minCode =
             int.tryParse(android['min_supported_code']?.toString() ?? '0') ?? 0;
 
-        // اصلاح لینک دانلود با _fixLocalUrl
+        // اصلاح لینک دانلود با AppConstants.fixUrl
         String url = android['update_url']?.toString() ?? '';
-        url = _fixLocalUrl(url);
+        url = AppConstants.fixUrl(url);
 
         setState(() {
           _updateUrl = url;

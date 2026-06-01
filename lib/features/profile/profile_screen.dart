@@ -86,24 +86,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  String _fixLocalUrl(String url) {
-    if (url.isEmpty) return url;
-
-    // اگر آدرس دامین تستی ویندوز رو داشت، اصلاحش کن برای شبیه‌ساز
-    if (url.contains('amutbar-admin.test')) {
-      return url.replaceAll('http://amutbar-admin.test', AppConstants.baseUrl);
-    }
-
-    // اگر آدرس نسبی بود و اصلاً با http شروع نمی‌شد (مثل فایل‌های پروفایل)
-    if (!url.startsWith('http')) {
-      // بررسی می‌کنیم که اسلش اضافی نداشته باشیم
-      final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-      return '${AppConstants.baseUrl}/$cleanUrl';
-    }
-
-    return url;
-  }
-
   Future<void> _fetchBanners() async {
     try {
       // دریافت بنرهای پروفایل (placement=profile)
@@ -116,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           setState(() {
             _banners = (res['items'] as List).map((b) {
               final banner = Map<String, dynamic>.from(b);
-              banner['image_url'] = _fixLocalUrl(
+              banner['image_url'] = AppConstants.fixUrl(
                 banner['image_url']?.toString() ?? '',
               );
               return banner;
@@ -272,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final String fullName = _user?['full_name'] ?? 'کاربر';
     final String phone = _user?['phone'] ?? '---';
     final String? avatarKey = _user?['avatar_key'];
-    final String avatarUrl = avatarKey != null ? _fixLocalUrl(avatarKey) : '';
+    final String avatarUrl = avatarKey != null ? AppConstants.fixUrl(avatarKey) : '';
 
     final int vStatus =
         int.tryParse(_driver?['verification_status']?.toString() ?? '0') ?? 0;

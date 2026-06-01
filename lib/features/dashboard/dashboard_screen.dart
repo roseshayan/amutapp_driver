@@ -38,14 +38,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.dispose();
   }
 
-  String _fixLocalUrl(String url) {
-    if (url.isEmpty) return url;
-    if (url.contains('amutbar-admin.test')) {
-      return url.replaceAll('http://amutbar-admin.test', AppConstants.baseUrl);
-    }
-    return url;
-  }
-
   Future<void> _fetchBanners() async {
     try {
       final res = await ApiClient.getJson(
@@ -57,7 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _banners = (res['items'] as List).map((b) {
               final banner = Map<String, dynamic>.from(b);
-              banner['image_url'] = _fixLocalUrl(
+              banner['image_url'] = AppConstants.fixUrl(
                 banner['image_url']?.toString() ?? '',
               );
               return banner;

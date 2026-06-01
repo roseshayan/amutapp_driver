@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/theme.dart';
@@ -47,18 +47,6 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
     _scrollController.dispose();
     _audioPlayer.dispose();
     super.dispose();
-  }
-
-  // 👈 تابع جدید برای تبدیل دامین لوکال به آی‌پی قابل فهم برای امولاتور
-  String _fixLocalUrl(String? url) {
-    if (url == null || url.isEmpty) return '';
-    if (url.contains('amutbar-admin.test')) {
-      return url.replaceAll(
-        'http://amutbar-admin.test',
-        'http://10.0.2.2/amutbar-admin',
-      );
-    }
-    return url;
   }
 
   Future<void> _initSetup() async {
@@ -139,22 +127,23 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
   }
 
   // انتخاب فایل از گالری یا فایل‌منیجر
+  // انتخاب فایل با استفاده از پکیج رسمی file_selector فلاتر
   Future<void> _pickAttachment() async {
     try {
-      // 👈 تغییر این خط به FilePicker.platform.pickFiles
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'],
+      // تعریف پسوندهای مجاز
+      final XTypeGroup typeGroup = XTypeGroup(
+        label: 'files',
+        extensions: <String>['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'],
       );
 
-      if (result != null && result.files.isNotEmpty) {
-        final file = result.files.first;
-        if (file.path != null && file.path!.isNotEmpty) {
-          setState(() {
-            _attachedFilePath = file.path;
-            _attachedFileName = file.name;
-          });
-        }
+      // باز کردن منوی انتخاب فایل
+      final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+
+      if (file != null) {
+        setState(() {
+          _attachedFilePath = file.path;
+          _attachedFileName = file.name;
+        });
       }
     } catch (e) {
       debugPrint('Error picking file: $e');
@@ -379,7 +368,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
     final msgText = m['message'] ?? '';
 
     // 👈 اعمال تابع فیکس کننده آدرس روی لینک دریافتی از سرور
-    final attachmentUrl = _fixLocalUrl(m['attachment_url'] as String?);
+    final attachmentUrl = AppConstants.fixUrl(m['attachment_url'] as String?);
 
     final attachmentName = m['attachment_name'] as String?;
 

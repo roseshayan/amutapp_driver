@@ -30,22 +30,10 @@ class _IdentityInfoScreenState extends State<IdentityInfoScreen> {
     }
   }
 
-  String _fixLocalUrl(String url) {
-    if (url.isEmpty) return url;
-    if (url.contains('amutbar-admin.test')) {
-      return url.replaceAll('http://amutbar-admin.test', AppConstants.baseUrl);
-    }
-    if (!url.startsWith('http')) {
-      final cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-      return '${AppConstants.baseUrl}/$cleanUrl';
-    }
-    return url;
-  }
-
   @override
   Widget build(BuildContext context) {
     final avatarKey = _user?['avatar_key'];
-    final avatarUrl = avatarKey != null ? _fixLocalUrl(avatarKey) : '';
+    final avatarUrl = avatarKey != null ? AppConstants.fixUrl(avatarKey) : '';
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,

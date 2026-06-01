@@ -44,9 +44,14 @@ import java.io.FileInputStream
 
             buildTypes {
                 release {
+                    // 👈 در کاتلین باید از متد getByName یا انتساب مستقیم با علامت مساوی استفاده شود
                     signingConfig = signingConfigs.getByName("release")
-                    isMinifyEnabled = true // فشرده‌سازی کدها برای کاهش حجم و امنیت
-                    isShrinkResources = true // حذف فایل‌های گرافیکی اضافه
+
+                    // 👈 در کاتلین باید قبل از مقدار true حتماً علامت مساوی (=) بگذارید
+                    isMinifyEnabled = true
+                    isShrinkResources = true
+
+                    // 👈 استفاده از کوتیشن دوتایی ("") به جای تک کوتیشن ('') و پرانتز برای proguardFiles
                     proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
                 }
             }

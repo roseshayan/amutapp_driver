@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'constants.dart';
+
 /// نگهداری اطلاعات عمومی اپ (نام/ورژن/لوگو/لینک‌ها/پشتیبانی/نگهداری) که از API دریافت می‌شود.
 class AppInfoCache {
   static Map<String, dynamic>? _raw;
@@ -215,12 +217,11 @@ class AppInfoCache {
       }
 
       // جایگزینی دامنه‌ی رایج پروژه شما
-      // اگر لوگو/fav با amutbar-admin.test برگشته باشد
       return u
           .replaceAll('http://amutbar-admin.test', _forcedBaseHost!)
           .replaceAll('https://amutbar-admin.test', _forcedBaseHost!);
     }
 
-    return u;
+    return AppConstants.fixUrl(u);
   }
 }

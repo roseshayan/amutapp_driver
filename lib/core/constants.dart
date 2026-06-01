@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String baseUrl = 'http://10.0.2.2/amutbar-admin';
+  static const String baseUrl = 'https://saba-exchange.com/amutadmin';
 
   static const String appInfoEndpoint = '/api/v1/meta/app-config';
   static const String sendOtpEndpoint = '/api/v1/auth/request-otp';
@@ -26,5 +26,16 @@ class AppConstants {
   static const String ticketsEndpoint = '/api/v1/support/tickets';
   static const String unreadNotifsCountEndpoint = '/api/v1/me/notifications/unread-count';
   static const String notificationsEndpoint = '/api/v1/me/notifications';
+
+  /// متد کمکی برای اصلاح لینک‌هایی که ممکن است هنوز دامنه‌ی تستی داشته باشند
+  static String fixUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.contains('amutbar-admin.test')) {
+      return url
+          .replaceAll('http://amutbar-admin.test', baseUrl)
+          .replaceAll('https://amutbar-admin.test', baseUrl);
+    }
+    return url;
+  }
 }
 
