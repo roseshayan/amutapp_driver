@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:device_info_plus/device_info_plus.dart'; // پکیج اطلاعات دستگاه
-import 'package:alt_sms_autofill/alt_sms_autofill.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/storage.dart';
@@ -20,7 +20,7 @@ class OtpScreen extends StatefulWidget {
   State<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> {
+class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
   final _otpCtrl = TextEditingController();
   bool _isLoading = false;
 
@@ -33,35 +33,22 @@ class _OtpScreenState extends State<OtpScreen> {
   void initState() {
     super.initState();
     startTimer();
-    _initSmsListener();
+    _listenSms();
   }
 
-  Future<void> _initSmsListener() async {
-    if (!Platform.isAndroid) return;
-
-    try {
-      AltSmsAutofill().listenForSms.then((value) {
-        if (value != null && mounted) {
-          debugPrint("SMS Received: $value");
-          // استخراج کد ۶ رقمی با ریجکس
-          // قالب: code : 123456
-          final RegExp regExp = RegExp(r"code\s*:\s*(\d{6})");
-          final match = regExp.firstMatch(value);
-          if (match != null) {
-            final code = match.group(1);
-            if (code != null) {
-              setState(() {
-                _otpCtrl.text = code;
-              });
-              // ارسال خودکار برای تایید
-              _verify();
-            }
-          }
-        }
+  @override
+  void codeUpdated() {
+    // وقتی پیامک دریافت شد، این متد صدا زده می‌شود
+    if (code != null && code!.length == 6) {
+      setState(() {
+        _otpCtrl.text = code!;
       });
-    } catch (e) {
-      debugPrint("Sms listener error: $e");
+      _verify();
     }
+  }
+
+  void _listenSms() async {
+    await SmsAutoFill().listenForCode();
   }
 
   void startTimer() {
@@ -243,11 +230,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _otpCtrl.dispose();
-    if (Platform.isAndroid) {
-      AltSmsAutofill().unregisterListener();
-    }
+    SmsAutoFill().unregisterListener();
     super.dispose();
   }
 

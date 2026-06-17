@@ -1,6 +1,6 @@
 {
-    "name": "amutbar_driver",
-    "short_name": "amutbar_driver",
+    "name": "Amutbar Driver",
+    "short_name": "Amutbar Driver",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
