@@ -137,7 +137,9 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
       );
 
       // باز کردن منوی انتخاب فایل
-      final XFile? file = await openFile(acceptedTypeGroups: <XTypeGroup>[typeGroup]);
+      final XFile? file = await openFile(
+        acceptedTypeGroups: <XTypeGroup>[typeGroup],
+      );
 
       if (file != null) {
         setState(() {
@@ -148,9 +150,9 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
     } catch (e) {
       debugPrint('Error picking file: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در انتخاب فایل: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('خطا در انتخاب فایل: $e')));
       }
     }
   }
@@ -247,7 +249,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                     color: Colors.grey.shade300,
                     padding: const EdgeInsets.all(16),
                     child: const Text(
-                      'این تیکت بسته شده است.',
+                      'این پیام بسته شده است.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.black54,

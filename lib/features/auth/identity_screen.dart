@@ -26,6 +26,27 @@ class _IdentityScreenState extends State<IdentityScreen> {
   final _serialCtrl = TextEditingController();
   bool _isRejected = false;
   String _rejectReason = '';
+  int? _selectedYear;
+  int? _selectedMonth;
+  int? _selectedDay;
+
+  final List<String> _persianMonths = [
+    'فروردین',
+    'اردیبهشت',
+    'خرداد',
+    'تیر',
+    'مرداد',
+    'شهریور',
+    'مهر',
+    'آبان',
+    'آذر',
+    'دی',
+    'بهمن',
+    'اسفند',
+  ];
+  List<int> get _years =>
+      List<int>.generate(106, (i) => (DateTime.now().year - 621) - i);
+  List<int> get _days => List<int>.generate(31, (i) => i + 1);
 
   bool _isLoading = false;
   String? _selectedDateServerFormat;
@@ -160,31 +181,39 @@ class _IdentityScreenState extends State<IdentityScreen> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
+    if (_selectedYear == null ||
+        _selectedMonth == null ||
+        _selectedDay == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('لطفاً تاریخ تولد خود را کامل انتخاب کنید.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
+      final String formattedDate =
+          '$_selectedYear/${_selectedMonth.toString().padLeft(2, '0')}/${_selectedDay.toString().padLeft(2, '0')}';
+
       Map<String, dynamic> requestData = {
         'full_name': _nameCtrl.text.trim(),
         'national_code': _nationalCodeCtrl.text.trim(),
-        'birth_date': _selectedDateServerFormat,
+        'birth_date': formattedDate,
       };
 
-      if (_requireSerial) {
-        requestData['card_serial'] = _serialCtrl.text.trim();
-      }
+      if (_requireSerial) requestData['card_serial'] = _serialCtrl.text.trim();
 
-      // ارسال درخواست به سرور
       final res = await ApiClient.postJson(
         AppConstants.verifyIdentityEndpoint,
         requestData,
       );
 
-      // --- این ۳ خط جدید رو اضافه کن ---
-      // آپدیت کردن حافظه گوشی (کش) با دیتای تازه و داغی که سرور برگردونده!
-      if (res['me'] != null) {
+      if (res['me'] != null)
         await AppStorage.setUserJson(jsonEncode(res['me']));
-      }
-      // ---------------------------------
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -385,21 +414,122 @@ class _IdentityScreenState extends State<IdentityScreen> {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: _pickDate,
-                        child: AbsorbPointer(
-                          child: TextFormField(
-                            controller: _birthDateCtrl,
-                            decoration: const InputDecoration(
-                              hintText: 'انتخاب کنید',
-                              prefixIcon: Icon(Icons.calendar_month_rounded),
-                              suffixIcon: Icon(Icons.arrow_drop_down),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: DropdownButtonFormField<int>(
+                              isExpanded: true,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 20,
+                              ),
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 16,
+                                ),
+                                hintText: 'روز',
+                                hintStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                              value: _selectedDay,
+                              items: _days
+                                  .map(
+                                    (d) => DropdownMenuItem(
+                                      value: d,
+                                      child: Text(
+                                        '$d',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) =>
+                                  setState(() => _selectedDay = val),
+                              validator: (v) => v == null ? 'انتخاب' : null,
                             ),
-                            validator: (v) => (v?.isEmpty ?? true)
-                                ? 'تاریخ تولد الزامی است'
-                                : null,
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 5,
+                            child: DropdownButtonFormField<int>(
+                              isExpanded: true,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 20,
+                              ),
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 16,
+                                ),
+                                hintText: 'ماه',
+                                hintStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                              value: _selectedMonth,
+                              items: _persianMonths
+                                  .asMap()
+                                  .entries
+                                  .map(
+                                    (m) => DropdownMenuItem(
+                                      value: m.key + 1,
+                                      child: Text(
+                                        m.value,
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) =>
+                                  setState(() => _selectedMonth = val),
+                              validator: (v) => v == null ? 'الزامی' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 4,
+                            child: DropdownButtonFormField<int>(
+                              isExpanded: true,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 20,
+                              ),
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 16,
+                                ),
+                                hintText: 'سال',
+                                hintStyle: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                              value: _selectedYear,
+                              items: _years
+                                  .map(
+                                    (y) => DropdownMenuItem(
+                                      value: y,
+                                      child: Text(
+                                        '$y',
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) =>
+                                  setState(() => _selectedYear = val),
+                              validator: (v) => v == null ? 'انتخاب' : null,
+                            ),
+                          ),
+                        ],
                       ),
 
                       if (_requireSerial) ...[

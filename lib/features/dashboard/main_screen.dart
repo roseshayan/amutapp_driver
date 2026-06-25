@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
@@ -150,44 +151,75 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          DashboardScreen(onChangeTab: _changeTab),
-          const LoadsListScreen(), // 🔥 تب بارهای اطراف من به صفحه لیست بار متصل شد
-          const CallHistoryScreen(),
-          const ProfileScreen(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _changeTab,
-        backgroundColor: Colors.white,
-        indicatorColor: AppTheme.primary.withOpacity(0.15),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded, color: AppTheme.primary),
-            label: 'داشبورد',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.location_on_outlined),
-            selectedIcon: Icon(Icons.location_on, color: AppTheme.primary),
-            label: 'اطراف من',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.phone_in_talk_outlined),
-            selectedIcon: Icon(Icons.phone_in_talk, color: AppTheme.primary),
-            label: 'تماس‌ها',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded, color: AppTheme.primary),
-            label: 'پروفایل',
-          ),
-        ],
+    return PopScope(
+      canPop: false, // جلوگیری از پاپ شدن خودکار
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+
+        if (_currentIndex != 0) {
+          // اگر در تبی غیر از داشبورد است، برگرد به داشبورد
+          _changeTab(0);
+        } else {
+          // اگر در داشبورد است، دیالوگ خروج نشان بده
+          final shouldExit = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('خروج از برنامه'),
+              content: const Text('آیا می‌خواهید از برنامه خارج شوید؟'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('خیر'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: () => SystemNavigator.pop(), // خروج کامل از اپ
+                  child: const Text('بله، خروج'),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            DashboardScreen(onChangeTab: _changeTab),
+            const LoadsListScreen(), // 🔥 تب بارهای اطراف من به صفحه لیست بار متصل شد
+            const CallHistoryScreen(),
+            const ProfileScreen(),
+          ],
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: _changeTab,
+          backgroundColor: Colors.white,
+          indicatorColor: AppTheme.primary.withOpacity(0.15),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded, color: AppTheme.primary),
+              label: 'داشبورد',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.location_on_outlined),
+              selectedIcon: Icon(Icons.location_on, color: AppTheme.primary),
+              label: 'اطراف من',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.phone_in_talk_outlined),
+              selectedIcon: Icon(Icons.phone_in_talk, color: AppTheme.primary),
+              label: 'تماس‌ها',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded, color: AppTheme.primary),
+              label: 'پروفایل',
+            ),
+          ],
+        ),
       ),
     );
   }

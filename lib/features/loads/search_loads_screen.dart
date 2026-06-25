@@ -107,7 +107,7 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  isOrigin ? 'انتخاب شهر مبدا' : 'انتخاب شهر مقصد',
+                  isOrigin ? 'انتخاب استان مبدا' : 'انتخاب استان مقصد',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -118,7 +118,7 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
                   controller: searchCtrl,
                   autofocus: true,
                   decoration: const InputDecoration(
-                    hintText: 'نام شهر یا استان را وارد کنید',
+                    hintText: 'نام استان یا شهر را وارد کنید',
                     prefixIcon: Icon(Icons.search),
                   ),
                   onChanged: (val) async {

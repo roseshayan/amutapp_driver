@@ -325,7 +325,7 @@ class _LoadsListScreenState extends State<LoadsListScreen> {
               context.push('/support');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-            child: const Text('ثبت تیکت'),
+            child: const Text('ثبت پیام'),
           ),
         ],
       ),

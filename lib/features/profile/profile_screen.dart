@@ -254,7 +254,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final String fullName = _user?['full_name'] ?? 'کاربر';
     final String phone = _user?['phone'] ?? '---';
     final String? avatarKey = _user?['avatar_key'];
-    final String avatarUrl = avatarKey != null ? AppConstants.fixUrl(avatarKey) : '';
+    final String avatarUrl = avatarKey != null
+        ? AppConstants.fixUrl(avatarKey)
+        : '';
 
     final int vStatus =
         int.tryParse(_driver?['verification_status']?.toString() ?? '0') ?? 0;
@@ -591,16 +593,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context.push('/vehicle-info'); // <--- این خط اضافه شد
                     },
                   ),
-                  _buildMenuItem(
-                    icon: Icons.account_balance_wallet_outlined,
-                    title: 'کیف پول و تراکنش‌ها',
-                    subtitle: 'موجودی و تاریخچه مالی',
-                    isComingSoon: true,
-                    onTap: () {},
-                  ),
+                  // _buildMenuItem(
+                  //   icon: Icons.account_balance_wallet_outlined,
+                  //   title: 'کیف پول و تراکنش‌ها',
+                  //   subtitle: 'موجودی و تاریخچه مالی',
+                  //   isComingSoon: true,
+                  //   onTap: () {},
+                  // ),
                   _buildMenuItem(
                     icon: Icons.support_agent_rounded,
-                    title: 'پشتیبانی و تیکت‌ها',
+                    title: 'پشتیبانی و پیام‌ها',
                     subtitle: 'ارتباط با ما و پیگیری مشکلات',
                     onTap: () {
                       context.push('/support'); // هدایت به صفحه پشتیبانی
