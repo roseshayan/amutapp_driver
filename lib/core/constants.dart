@@ -28,15 +28,33 @@ class AppConstants {
   static const String unreadNotifsCountEndpoint = '/api/v1/me/notifications/unread-count';
   static const String notificationsEndpoint = '/api/v1/me/notifications';
 
-  /// متد کمکی برای اصلاح لینک‌هایی که ممکن است هنوز دامنه‌ی تستی داشته باشند
+  /// متد کمکی برای اصلاح لینک‌هایی که ممکن است نسبی باشند یا هنوز دامنه‌ی تستی داشته باشند
   static String fixUrl(String? url) {
-    if (url == null || url.isEmpty) return '';
-    if (url.contains('amutbar-admin.test')) {
-      return url
+    final raw = url?.trim() ?? '';
+    if (raw.isEmpty) return '';
+
+    var fixed = raw;
+
+    if (fixed.contains('amutbar-admin.test')) {
+      fixed = fixed
           .replaceAll('http://amutbar-admin.test', baseUrl)
           .replaceAll('https://amutbar-admin.test', baseUrl);
     }
-    return url;
+
+    final uri = Uri.tryParse(fixed);
+    if (uri != null && uri.hasScheme && uri.host.isNotEmpty) {
+      return fixed;
+    }
+
+    if (fixed.startsWith('//')) {
+      return 'https:$fixed';
+    }
+
+    if (fixed.startsWith('/')) {
+      return '$baseUrl$fixed';
+    }
+
+    return '$baseUrl/$fixed';
   }
 }
 
