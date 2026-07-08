@@ -292,25 +292,37 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
                   );
                 },
               ),
-            const SizedBox(height: 100), // فاصله برای دکمه پایینی
+            const SizedBox(height: 24),
           ],
         ),
       ),
-      bottomSheet: Container(
-        padding: const EdgeInsets.all(16),
-        color: Colors.white,
-        child: SizedBox(
-          width: double.infinity,
-          height: 60,
-          child: ElevatedButton.icon(
-            onPressed: () =>
-                _initiateCallAndLog(_loadDetails!['phone_coordination'] ?? ''),
-            icon: const Icon(Icons.phone_forwarded),
-            label: const Text('برقراری تماس'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton.icon(
+              onPressed: () =>
+                  _initiateCallAndLog(_loadDetails!['phone_coordination'] ?? ''),
+              icon: const Icon(Icons.phone_forwarded),
+              label: const Text('برقراری تماس'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),

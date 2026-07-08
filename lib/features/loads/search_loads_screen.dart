@@ -82,6 +82,67 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
     }
   }
 
+  String _normalizeProvinceText(dynamic value) {
+    return (value ?? '')
+        .toString()
+        .replaceAll('ي', 'ی')
+        .replaceAll('ك', 'ک')
+        .replaceAll('‌', '')
+        .replaceAll(' ', '')
+        .trim();
+  }
+
+  int? _readInt(Map<dynamic, dynamic> map, List<String> keys) {
+    for (final key in keys) {
+      final value = map[key];
+      if (value == null) continue;
+      final parsed = int.tryParse(value.toString());
+      if (parsed != null) return parsed;
+    }
+    return null;
+  }
+
+  bool _textContainsProvince(dynamic text, String selectedProvinceName) {
+    final normalizedText = _normalizeProvinceText(text);
+    final normalizedProvince = _normalizeProvinceText(selectedProvinceName);
+    if (normalizedText.isEmpty || normalizedProvince.isEmpty) return false;
+    return normalizedText.contains(normalizedProvince);
+  }
+
+  bool _loadMatchesSelectedProvinces(dynamic item) {
+    if (!_filtersReady) return true;
+    if (item is! Map) return false;
+
+    final originProvinceId = _readInt(item, const [
+      'origin_province_id',
+      'originProvinceId',
+      'originProvinceID',
+    ]);
+    final destProvinceId = _readInt(item, const [
+      'dest_province_id',
+      'destination_province_id',
+      'destProvinceId',
+      'destinationProvinceId',
+      'destProvinceID',
+    ]);
+
+    final originMatches = originProvinceId != null
+        ? originProvinceId == _originProvinceId
+        : _textContainsProvince(item['origin_province'], _originProvinceName) ||
+              _textContainsProvince(item['originProvince'], _originProvinceName) ||
+              _textContainsProvince(item['origin'], _originProvinceName);
+
+    final destMatches = destProvinceId != null
+        ? destProvinceId == _destProvinceId
+        : _textContainsProvince(item['dest_province'], _destProvinceName) ||
+              _textContainsProvince(item['destination_province'], _destProvinceName) ||
+              _textContainsProvince(item['destProvince'], _destProvinceName) ||
+              _textContainsProvince(item['destinationProvince'], _destProvinceName) ||
+              _textContainsProvince(item['destination'], _destProvinceName);
+
+    return originMatches && destMatches;
+  }
+
   Future<void> _fetchLoads({bool isBackgroundRefresh = false}) async {
     if (!_filtersReady) {
       setState(() {
@@ -101,13 +162,27 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
     }
 
     try {
-      final url =
-          '${AppConstants.driverLoadsEndpoint}?origin_province_id=$_originProvinceId&dest_province_id=$_destProvinceId';
+      final url = Uri(
+        path: AppConstants.driverLoadsEndpoint,
+        queryParameters: {
+          'origin_province_id': _originProvinceId.toString(),
+          'dest_province_id': _destProvinceId.toString(),
+        },
+      ).toString();
       final res = await ApiClient.getJson(url);
 
       if (res['ok'] == true && mounted) {
+        final rawItems = (res['items'] is List) ? res['items'] as List : <dynamic>[];
+        final filteredItems = rawItems.where(_loadMatchesSelectedProvinces).toList();
+        if (rawItems.length != filteredItems.length) {
+          debugPrint(
+            'Filtered ${rawItems.length - filteredItems.length} mismatched loads on client. '
+            'originProvince=$_originProvinceName, destProvince=$_destProvinceName',
+          );
+        }
+
         setState(() {
-          _loads = res['items'] ?? [];
+          _loads = filteredItems;
           _infoMessage = res['info_message'] ?? '';
           _isLoading = false;
         });
