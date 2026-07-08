@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/theme.dart';
@@ -30,6 +31,11 @@ class _LoadsListScreenState extends State<LoadsListScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'nearby_loads_view',
+      screenKey: 'nearby_loads',
+      screenTitle: 'بارهای اطراف من',
+    );
     _determineLocalPositionAndFetch();
     _startAutoRefresh(); // 👈 اجرای تایمر در شروع صفحه
   }

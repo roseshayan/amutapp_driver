@@ -20,6 +20,7 @@ class AppConstants {
   static const String driverLoadsEndpoint = '/api/v1/driver/loads';
   static const String citiesSearchEndpoint = '/api/v1/meta/cities/search';
   static const String logCallEndpoint = '/api/v1/driver/calls/log';
+  static const String driverActivityEndpoint = '/api/v1/driver/activity';
   static const String companyActiveLoadsEndpoint = '/api/v1/companies/active-loads';
 
   // سایر موارد قبلی

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:file_selector/file_selector.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/theme.dart';
@@ -37,6 +38,14 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'ticket_view',
+      screenKey: 'ticket_chat',
+      screenTitle: 'گفتگوی تیکت',
+      entityType: 'ticket',
+      entityId: widget.ticketId,
+      ticketId: widget.ticketId,
+    );
     _initSetup();
   }
 
@@ -169,6 +178,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
     if ((text.isEmpty && _attachedFilePath == null) || _isSending) return;
 
     setState(() => _isSending = true);
+    final hadAttachment = _attachedFilePath != null;
 
     try {
       if (_attachedFilePath != null) {
@@ -187,6 +197,18 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
           {'message': text},
         );
       }
+      ActivityTracker.track(
+        eventKey: 'ticket_reply',
+        screenKey: 'ticket_chat',
+        screenTitle: 'گفتگوی تیکت',
+        entityType: 'ticket',
+        entityId: widget.ticketId,
+        ticketId: widget.ticketId,
+        payload: {
+          'has_attachment': hadAttachment,
+          'message_length': text.length,
+        },
+      );
       _msgCtrl.clear();
       await _fetchData();
       _scrollToBottom();

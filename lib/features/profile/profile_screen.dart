@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/app_info.dart';
 import '../../core/constants.dart';
@@ -33,6 +34,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'profile_view',
+      screenKey: 'profile',
+      screenTitle: 'پروفایل',
+    );
     _loadLocalData(); // لود سریع و بدون مکث از کش
     _fetchFreshProfile(); // دریافت دیتای زنده از سرور
     _fetchBanners();
@@ -241,6 +247,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (confirm == true) {
+      await ActivityTracker.trackNow(
+        eventKey: 'logout',
+        screenKey: 'profile',
+        screenTitle: 'پروفایل',
+      );
       try {
         await ApiClient.postJson(AppConstants.logoutEndpoint, {});
       } catch (_) {}
@@ -582,7 +593,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'اطلاعات هویتی',
                     subtitle: 'مشاهده مشخصات شخصی',
                     onTap: () {
-                      context.push('/identity-info'); // <--- این خط اضافه شد
+                      ActivityTracker.track(
+                        eventKey: 'identity_info_view',
+                        screenKey: 'identity_info',
+                        screenTitle: 'اطلاعات هویتی',
+                      );
+                      context.push('/identity-info');
                     },
                   ),
                   _buildMenuItem(
@@ -590,7 +606,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'مشخصات خودرو',
                     subtitle: 'مدیریت پلاک و نوع بارگیر',
                     onTap: () {
-                      context.push('/vehicle-info'); // <--- این خط اضافه شد
+                      ActivityTracker.track(
+                        eventKey: 'vehicle_info_view',
+                        screenKey: 'vehicle_info',
+                        screenTitle: 'مشخصات خودرو',
+                      );
+                      context.push('/vehicle-info');
                     },
                   ),
                   // _buildMenuItem(
@@ -605,7 +626,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title: 'پشتیبانی و پیام‌ها',
                     subtitle: 'ارتباط با ما و پیگیری مشکلات',
                     onTap: () {
-                      context.push('/support'); // هدایت به صفحه پشتیبانی
+                      ActivityTracker.track(
+                        eventKey: 'support_view',
+                        screenKey: 'support',
+                        screenTitle: 'پشتیبانی و پیام‌ها',
+                      );
+                      context.push('/support');
                     },
                   ),
                   _buildMenuItem(

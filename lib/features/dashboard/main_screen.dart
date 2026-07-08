@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/theme.dart';
@@ -51,6 +52,16 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'app_open',
+      screenKey: 'dashboard',
+      screenTitle: 'داشبورد',
+    );
+    ActivityTracker.track(
+      eventKey: 'dashboard_view',
+      screenKey: 'dashboard',
+      screenTitle: 'داشبورد',
+    );
     _checkUnreadNotifs();
     _notifTimer = Timer.periodic(
       const Duration(seconds: 15),
@@ -65,6 +76,35 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _changeTab(int index) {
+    final labels = ['داشبورد', 'بارهای اطراف من', 'تماس‌ها', 'پروفایل'];
+    final keys = ['dashboard', 'nearby_loads', 'call_history', 'profile'];
+    if (index >= 0 && index < labels.length && index != _currentIndex) {
+      ActivityTracker.track(
+        eventKey: 'tab_change',
+        screenKey: keys[index],
+        screenTitle: labels[index],
+        payload: {'tab_index': index, 'tab_title': labels[index]},
+      );
+      if (index == 0) {
+        ActivityTracker.track(
+          eventKey: 'dashboard_view',
+          screenKey: 'dashboard',
+          screenTitle: 'داشبورد',
+        );
+      } else if (index == 1) {
+        ActivityTracker.track(
+          eventKey: 'nearby_loads_view',
+          screenKey: 'nearby_loads',
+          screenTitle: 'بارهای اطراف من',
+        );
+      } else if (index == 3) {
+        ActivityTracker.track(
+          eventKey: 'profile_view',
+          screenKey: 'profile',
+          screenTitle: 'پروفایل',
+        );
+      }
+    }
     setState(() {
       _currentIndex = index;
     });

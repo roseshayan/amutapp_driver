@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/storage.dart';
@@ -35,6 +36,11 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'vehicle_info_view',
+      screenKey: 'vehicle_info',
+      screenTitle: 'مشخصات خودرو و بارگیر',
+    );
     _loadData();
   }
 
@@ -210,6 +216,18 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
       );
 
       if (res['ok'] == true) {
+        ActivityTracker.track(
+          eventKey: 'vehicle_info_update',
+          screenKey: 'vehicle_info',
+          screenTitle: 'مشخصات خودرو و بارگیر',
+          entityType: 'profile',
+          payload: {
+            'vehicle_type_id': _selectedVehicleTypeId,
+            'plate_number': _plateValue,
+            'smart_card_filled': _smartCardCtrl.text.trim().isNotEmpty,
+            'insurance_filled': _insuranceNoCtrl.text.trim().isNotEmpty,
+          },
+        );
         if (res['driver'] is Map) {
           final profile = res['driver'] as Map;
           await AppStorage.setUserJson(jsonEncode(profile));

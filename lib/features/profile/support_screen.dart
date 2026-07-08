@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/app_info.dart';
 import '../../core/constants.dart';
@@ -21,6 +22,11 @@ class _SupportScreenState extends State<SupportScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'support_view',
+      screenKey: 'support',
+      screenTitle: 'پشتیبانی و پیام‌ها',
+    );
     _fetchTickets();
   }
 
@@ -50,6 +56,13 @@ class _SupportScreenState extends State<SupportScreen> {
 
   void _openUrl(String url) async {
     if (url.isEmpty) return;
+    ActivityTracker.track(
+      eventKey: 'support_contact_tap',
+      screenKey: 'support',
+      screenTitle: 'پشتیبانی و پیام‌ها',
+      entityType: 'support',
+      payload: {'url_scheme': Uri.tryParse(url)?.scheme ?? ''},
+    );
     try {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (_) {}
@@ -111,12 +124,21 @@ class _SupportScreenState extends State<SupportScreen> {
                               return;
                             setModalState(() => isSaving = true);
                             try {
-                              await ApiClient.postJson(
+                              final ticketRes = await ApiClient.postJson(
                                 AppConstants.ticketsEndpoint,
                                 {
                                   'subject': subjectCtrl.text,
                                   'message': msgCtrl.text,
                                 },
+                              );
+                              ActivityTracker.track(
+                                eventKey: 'ticket_create',
+                                screenKey: 'support',
+                                screenTitle: 'پشتیبانی و پیام‌ها',
+                                entityType: 'ticket',
+                                entityId: int.tryParse((ticketRes['ticket_id'] ?? '').toString()),
+                                ticketId: int.tryParse((ticketRes['ticket_id'] ?? '').toString()),
+                                payload: {'subject': subjectCtrl.text.trim()},
                               );
                               if (ctx.mounted) {
                                 Navigator.pop(ctx);
@@ -262,9 +284,21 @@ class _SupportScreenState extends State<SupportScreen> {
                       final isAnswered = status == 2;
 
                       return InkWell(
-                        onTap: () => context
-                            .push('/ticket-chat', extra: t['id'])
-                            .then((_) => _fetchTickets()),
+                        onTap: () {
+                          final ticketId = int.tryParse(t['id'].toString()) ?? 0;
+                          ActivityTracker.track(
+                            eventKey: 'ticket_view',
+                            screenKey: 'support',
+                            screenTitle: 'پشتیبانی و پیام‌ها',
+                            entityType: 'ticket',
+                            entityId: ticketId,
+                            ticketId: ticketId,
+                            payload: {'subject': t['subject']},
+                          );
+                          context
+                              .push('/ticket-chat', extra: t['id'])
+                              .then((_) => _fetchTickets());
+                        },
                         borderRadius: BorderRadius.circular(16),
                         child: Container(
                           padding: const EdgeInsets.all(16),

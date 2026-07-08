@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import 'widgets/load_card.dart';
@@ -30,6 +31,11 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'search_page_view',
+      screenKey: 'search_loads',
+      screenTitle: 'جستجوی بار',
+    );
     _startAutoRefresh();
   }
 
@@ -174,6 +180,22 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
       if (res['ok'] == true && mounted) {
         final rawItems = (res['items'] is List) ? res['items'] as List : <dynamic>[];
         final filteredItems = rawItems.where(_loadMatchesSelectedProvinces).toList();
+        if (!isBackgroundRefresh) {
+          ActivityTracker.track(
+            eventKey: 'search_loads',
+            screenKey: 'search_loads',
+            screenTitle: 'جستجوی بار',
+            payload: {
+              'origin_province_id': _originProvinceId,
+              'origin_province_name': _originProvinceName,
+              'dest_province_id': _destProvinceId,
+              'dest_province_name': _destProvinceName,
+              'raw_count': rawItems.length,
+              'shown_count': filteredItems.length,
+            },
+          );
+        }
+
         if (rawItems.length != filteredItems.length) {
           debugPrint(
             'Filtered ${rawItems.length - filteredItems.length} mismatched loads on client. '
@@ -277,6 +299,16 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
                                           _destProvinceName = name;
                                         }
                                       });
+                                      ActivityTracker.track(
+                                        eventKey: 'search_filter_set',
+                                        screenKey: 'search_loads',
+                                        screenTitle: 'جستجوی بار',
+                                        payload: {
+                                          'filter': isOrigin ? 'origin_province' : 'dest_province',
+                                          'province_id': id,
+                                          'province_name': name,
+                                        },
+                                      );
                                       Navigator.pop(ctx);
                                       if (_filtersReady) {
                                         _fetchLoads();

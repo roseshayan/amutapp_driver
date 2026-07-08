@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/constants.dart';
 import '../../core/storage.dart';
 import '../../core/theme.dart';
@@ -18,6 +19,11 @@ class _IdentityInfoScreenState extends State<IdentityInfoScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'identity_info_view',
+      screenKey: 'identity_info',
+      screenTitle: 'اطلاعات هویتی',
+    );
     _loadData();
   }
 

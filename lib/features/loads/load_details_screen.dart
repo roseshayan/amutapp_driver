@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/theme.dart';
@@ -23,6 +24,14 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    ActivityTracker.track(
+      eventKey: 'load_detail_view',
+      screenKey: 'load_details',
+      screenTitle: 'جزئیات بار',
+      entityType: 'load',
+      entityId: widget.loadId,
+      loadId: widget.loadId,
+    );
     _fetchFullDetails();
   }
 
@@ -82,6 +91,20 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
 
   Future<void> _initiateCallAndLog(String phone) async {
     if (phone.isEmpty) return;
+    ActivityTracker.track(
+      eventKey: 'call_button_tap',
+      screenKey: 'load_details',
+      screenTitle: 'جزئیات بار',
+      entityType: 'load',
+      entityId: widget.loadId,
+      loadId: widget.loadId,
+      companyId: int.tryParse((_loadDetails?['company_id'] ?? '').toString()),
+      payload: {
+        'public_code': _loadDetails?['public_code'],
+        'origin': _loadDetails?['origin_full'] ?? _loadDetails?['origin_city'],
+        'destination': _loadDetails?['dest_full'] ?? _loadDetails?['dest_city'],
+      },
+    );
     try {
       await ApiClient.postJson(AppConstants.logCallEndpoint, {
         'load_id': widget.loadId,
@@ -109,6 +132,21 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
     final dLng = _loadDetails!['d_lng'];
 
     if (oLat == null || dLat == null) return;
+
+    ActivityTracker.track(
+      eventKey: 'map_route_open',
+      screenKey: 'load_details',
+      screenTitle: 'جزئیات بار',
+      entityType: 'load',
+      entityId: widget.loadId,
+      loadId: widget.loadId,
+      payload: {
+        'origin_lat': oLat,
+        'origin_lng': oLng,
+        'dest_lat': dLat,
+        'dest_lng': dLng,
+      },
+    );
 
     // هدایت به لینک یونیورسال گوگل مپ که به طور خودکار نقشه گوشی را باز می‌کند
     final url =

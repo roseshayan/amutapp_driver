@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/activity_tracker.dart';
 import '../../../core/theme.dart';
 import '../load_details_screen.dart';
 
@@ -151,11 +152,26 @@ class LoadCard extends StatelessWidget {
               height: 60,
               child: ElevatedButton.icon(
                 onPressed: () {
+                  final loadId = int.tryParse(load['id'].toString()) ?? 0;
+                  ActivityTracker.track(
+                    eventKey: 'load_card_open',
+                    screenKey: 'loads_list',
+                    screenTitle: 'لیست بارها',
+                    entityType: 'load',
+                    entityId: loadId,
+                    loadId: loadId,
+                    payload: {
+                      'origin': load['origin'],
+                      'destination': load['destination'],
+                      'cargo_title': load['cargo_title'],
+                      'price': load['price'],
+                    },
+                  );
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => LoadDetailsScreen(
-                        loadId: int.parse(load['id'].toString()),
+                        loadId: loadId,
                       ),
                     ),
                   );
