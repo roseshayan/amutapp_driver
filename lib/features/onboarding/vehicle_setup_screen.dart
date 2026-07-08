@@ -43,6 +43,12 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
     super.dispose();
   }
 
+  int? _asInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
   Future<bool> _ensurePermission(ImageSource source) async {
     if (source == ImageSource.camera) {
       final st = await Permission.camera.request();
@@ -108,7 +114,7 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
       final vt = await ApiClient.getJson(AppConstants.vehicleTypesEndpoint);
 
       final driver = (me['driver'] is Map) ? me['driver'] as Map : null;
-      final vtid = (driver?['vehicle_type_id'] ?? 0);
+      final vtid = _asInt(driver?['vehicle_type_id']);
       final plate = (driver?['plate_number'] ?? '').toString();
 
       final itemsRaw = (vt['items'] is List)
@@ -116,13 +122,22 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
           : <dynamic>[];
       final items = itemsRaw
           .whereType<Map>()
-          .map((e) => e.map((k, v) => MapEntry(k.toString(), v)))
+          .map((e) {
+            final item = Map<String, dynamic>.from(e);
+            item['id'] = _asInt(item['id']);
+            item['parent_id'] = _asInt(item['parent_id']);
+            item['sort'] = _asInt(item['sort']);
+            return item;
+          })
+          .where((e) => e['id'] != null)
           .toList();
 
       setState(() {
         _me = me;
         _vehicleTypes = items;
-        _selectedVehicleTypeId = (vtid is int && vtid > 0) ? vtid : null;
+        final ids = items.map((e) => _asInt(e['id'])).whereType<int>().toSet();
+        _selectedVehicleTypeId =
+            (vtid != null && vtid > 0 && ids.contains(vtid)) ? vtid : null;
         _plateValue = plate;
       });
     } catch (_) {
@@ -159,8 +174,8 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
     final childrenCount = <int, int>{};
 
     for (final it in _vehicleTypes) {
-      final id = (it['id'] is int) ? it['id'] as int : 0;
-      final pid = (it['parent_id'] is int) ? it['parent_id'] as int : null;
+      final id = _asInt(it['id']) ?? 0;
+      final pid = _asInt(it['parent_id']);
       if (id > 0) {
         byParent.putIfAbsent(pid, () => []).add(it);
         if (pid != null) {
@@ -169,9 +184,7 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
       }
     }
 
-    int sortKey(Map<String, dynamic> a) => (a['sort'] is int)
-        ? a['sort'] as int
-        : ((a['id'] is int) ? a['id'] as int : 0);
+    int sortKey(Map<String, dynamic> a) => _asInt(a['sort']) ?? _asInt(a['id']) ?? 0;
 
     final out = <DropdownMenuItem<int>>[];
 
@@ -179,10 +192,10 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
       final group = (byParent[parentId] ?? [])
         ..sort((a, b) => sortKey(a).compareTo(sortKey(b)));
       for (final it in group) {
-        final id = (it['id'] is int) ? it['id'] as int : 0;
+        final id = _asInt(it['id']) ?? 0;
         final title = (it['title'] ?? '').toString();
         final hasChild = (childrenCount[id] ?? 0) > 0;
-        final pid = (it['parent_id'] is int) ? it['parent_id'] as int : null;
+        final pid = _asInt(it['parent_id']);
 
         final selectable = !hasChild;
         final isChild = pid != null;

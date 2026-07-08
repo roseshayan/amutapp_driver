@@ -38,36 +38,104 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
     _loadData();
   }
 
+  @override
+  void dispose() {
+    _smartCardCtrl.dispose();
+    _modelYearCtrl.dispose();
+    _colorCtrl.dispose();
+    _capacityCtrl.dispose();
+    _vinCtrl.dispose();
+    _engineCtrl.dispose();
+    _chassisCtrl.dispose();
+    _insuranceNoCtrl.dispose();
+    _insuranceExpiryCtrl.dispose();
+    super.dispose();
+  }
+
+  int? _asInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    return int.tryParse(value.toString());
+  }
+
+  void _hydrateFromProfile(Map<String, dynamic> data) {
+    final isProfileShape = data.containsKey('user') || data.containsKey('driver');
+    final user = isProfileShape ? data['user'] : null;
+    final driver = isProfileShape ? data['driver'] : data;
+
+    _user = user is Map ? Map<String, dynamic>.from(user) : _user;
+    _driver = driver is Map ? Map<String, dynamic>.from(driver) : null;
+
+    if (_driver == null) return;
+
+    _selectedVehicleTypeId = _asInt(_driver!['vehicle_type_id']);
+    _smartCardCtrl.text = _driver!['smart_card_number']?.toString() ?? '';
+    _modelYearCtrl.text = _driver!['model_year']?.toString() ?? '';
+    _colorCtrl.text = _driver!['color']?.toString() ?? '';
+    _capacityCtrl.text = _driver!['capacity_kg']?.toString() ?? '';
+    _vinCtrl.text = _driver!['vin_number']?.toString() ?? '';
+    _engineCtrl.text = _driver!['engine_number']?.toString() ?? '';
+    _chassisCtrl.text = _driver!['chassis_number']?.toString() ?? '';
+    _insuranceNoCtrl.text = _driver!['insurance_number']?.toString() ?? '';
+    _insuranceExpiryCtrl.text =
+        _driver!['insurance_expiry']?.toString() ?? '';
+    _plateValue = _driver!['plate_number']?.toString() ?? '';
+  }
+
   Future<void> _loadData() async {
-    final userJson = await AppStorage.getUserJson();
-    if (userJson != null) {
-      final data = jsonDecode(userJson);
-      _user = data['user'];
-      _driver = data['driver'];
-      if (_driver != null) {
-        _selectedVehicleTypeId = _driver!['vehicle_type_id'];
-        _smartCardCtrl.text = _driver!['smart_card_number']?.toString() ?? '';
-        _modelYearCtrl.text = _driver!['model_year']?.toString() ?? '';
-        _colorCtrl.text = _driver!['color']?.toString() ?? '';
-        _capacityCtrl.text = _driver!['capacity_kg']?.toString() ?? '';
-        _vinCtrl.text = _driver!['vin_number']?.toString() ?? '';
-        _engineCtrl.text = _driver!['engine_number']?.toString() ?? '';
-        _chassisCtrl.text = _driver!['chassis_number']?.toString() ?? '';
-        _insuranceNoCtrl.text = _driver!['insurance_number']?.toString() ?? '';
-        _insuranceExpiryCtrl.text =
-            _driver!['insurance_expiry']?.toString() ?? '';
-        _plateValue = _driver!['plate_number']?.toString() ?? '';
-      }
-    }
+    setState(() => _isLoading = true);
 
     try {
-      final res = await ApiClient.getJson(AppConstants.vehicleTypesEndpoint);
-      if (res['ok'] == true) {
-        _vehicleTypes = res['items'] ?? [];
+      final userJson = await AppStorage.getUserJson();
+      if (userJson != null && userJson.trim().isNotEmpty) {
+        try {
+          final decoded = jsonDecode(userJson);
+          if (decoded is Map) {
+            _hydrateFromProfile(Map<String, dynamic>.from(decoded));
+          }
+        } catch (e) {
+          debugPrint('Invalid cached profile json: $e');
+        }
       }
-    } catch (_) {}
 
-    if (mounted) setState(() => _isLoading = false);
+      try {
+        final fresh = await ApiClient.getJson(AppConstants.meEndpoint);
+        if (fresh['ok'] == true) {
+          _hydrateFromProfile(fresh);
+          await AppStorage.setUserJson(jsonEncode(fresh));
+        }
+      } catch (e) {
+        debugPrint('Fresh profile load failed: $e');
+      }
+
+      try {
+        final res = await ApiClient.getJson(AppConstants.vehicleTypesEndpoint);
+        if (res['ok'] == true && res['items'] is List) {
+          _vehicleTypes = (res['items'] as List)
+              .whereType<Map>()
+              .map((e) {
+                final item = Map<String, dynamic>.from(e);
+                item['id'] = _asInt(item['id']);
+                return item;
+              })
+              .where((e) => e['id'] != null)
+              .toList();
+        }
+      } catch (e) {
+        debugPrint('Vehicle types load failed: $e');
+      }
+
+      final ids = _vehicleTypes
+          .map((e) => _asInt(e['id']))
+          .whereType<int>()
+          .toSet();
+      if (_selectedVehicleTypeId != null &&
+          !ids.contains(_selectedVehicleTypeId)) {
+        _selectedVehicleTypeId = null;
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _pickInsuranceExpiry() async {
@@ -115,8 +183,12 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
 
     try {
       final requestData = {
-        'full_name': _user?['full_name'] ?? '',
-        'national_code': _user?['code_meli'] ?? '',
+        'full_name': _user?['full_name'] ?? _driver?['full_name'] ?? '',
+        'national_code':
+            _user?['code_meli'] ??
+            _user?['national_code'] ??
+            _driver?['national_code'] ??
+            '',
         'province_id': _driver?['province_id'] ?? '',
         'city_id': _driver?['city_id'] ?? '',
         'vehicle_type_id': _selectedVehicleTypeId,
@@ -138,8 +210,18 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
       );
 
       if (res['ok'] == true) {
-        if (res['driver'] != null) {
-          await AppStorage.setUserJson(jsonEncode(res['driver']));
+        if (res['driver'] is Map) {
+          final profile = res['driver'] as Map;
+          await AppStorage.setUserJson(jsonEncode(profile));
+          _hydrateFromProfile(Map<String, dynamic>.from(profile));
+        } else {
+          try {
+            final fresh = await ApiClient.getJson(AppConstants.meEndpoint);
+            if (fresh['ok'] == true) {
+              await AppStorage.setUserJson(jsonEncode(fresh));
+              _hydrateFromProfile(fresh);
+            }
+          } catch (_) {}
         }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -210,17 +292,18 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
                       ),
                     ),
                     items: _vehicleTypes.map((v) {
+                      final title = v['title']?.toString() ?? 'نامشخص';
                       return DropdownMenuItem<int>(
-                        value: v['id'],
+                        value: _asInt(v['id']),
                         child: Row(
                           children: [
                             Icon(
-                              _getVehicleIcon(v['title']),
+                              _getVehicleIcon(title),
                               color: Colors.grey.shade600,
                               size: 20,
                             ),
                             const SizedBox(width: 10),
-                            Text(v['title']),
+                            Text(title),
                           ],
                         ),
                       );

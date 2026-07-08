@@ -656,64 +656,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Color textColor = Colors.black87,
     bool isComingSoon = false,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: ListTile(
-        onTap: isComingSoon ? null : onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isComingSoon
-                ? Colors.grey.shade100
-                : iconColor.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: isComingSoon ? Colors.grey : iconColor),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200),
         ),
-        title: Row(
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-                color: isComingSoon ? Colors.grey : textColor,
-              ),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          onTap: isComingSoon ? null : onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isComingSoon
+                  ? Colors.grey.shade100
+                  : iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-            if (isComingSoon) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  'به زودی',
-                  style: TextStyle(fontSize: 10, color: Colors.grey),
+            child: Icon(icon, color: isComingSoon ? Colors.grey : iconColor),
+          ),
+          title: Row(
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: isComingSoon ? Colors.grey : textColor,
                 ),
               ),
+              if (isComingSoon) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'به زودی',
+                    style: TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          ),
+          trailing: isComingSoon
+              ? null
+              : const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Colors.grey,
+                ),
         ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-        ),
-        trailing: isComingSoon
-            ? null
-            : const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: Colors.grey,
-              ),
       ),
     );
   }
+
 }

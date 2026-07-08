@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import 'widgets/load_card.dart';
-import 'widgets/filter_badge.dart'; // ویجت مشترک فیلتر
+import 'widgets/filter_badge.dart';
 
 class SearchLoadsScreen extends StatefulWidget {
   const SearchLoadsScreen({super.key});
@@ -17,17 +17,19 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
   bool _isLoading = false;
   String _infoMessage = '';
 
-  int? _originCityId;
-  String _originCityName = 'انتخاب مبدا';
-  int? _destCityId;
-  String _destCityName = 'انتخاب مقصد';
+  int? _originProvinceId;
+  String _originProvinceName = 'انتخاب استان مبدا';
+  int? _destProvinceId;
+  String _destProvinceName = 'انتخاب استان مقصد';
+
+  List<Map<String, dynamic>> _provinces = [];
+  bool _isLoadingProvinces = false;
 
   Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    // فقط در صورت انتخاب هر دو فیلتر، تایمر رفرش خودکار را فعال می‌کنیم (در صورت نیاز)
     _startAutoRefresh();
   }
 
@@ -37,18 +39,55 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
     super.dispose();
   }
 
+  bool get _filtersReady => _originProvinceId != null && _destProvinceId != null;
+
   void _startAutoRefresh() {
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (mounted && _originCityId != null && _destCityId != null) {
+      if (mounted && _filtersReady) {
         _fetchLoads(isBackgroundRefresh: true);
       }
     });
   }
 
+  Future<void> _loadProvinces() async {
+    if (_provinces.isNotEmpty || _isLoadingProvinces) return;
+
+    setState(() => _isLoadingProvinces = true);
+    try {
+      final res = await ApiClient.getJson(AppConstants.provincesEndpoint);
+      final items = (res['items'] is List) ? res['items'] as List : <dynamic>[];
+      final provinces = items
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .where((e) => int.tryParse(e['id'].toString()) != null)
+          .toList();
+
+      if (mounted) {
+        setState(() {
+          _provinces = provinces;
+          _isLoadingProvinces = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading provinces: $e');
+      if (mounted) {
+        setState(() => _isLoadingProvinces = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('خطا در دریافت لیست استان‌ها'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _fetchLoads({bool isBackgroundRefresh = false}) async {
-    if (_originCityId == null || _destCityId == null) {
-      // هنوز هر دو انتخاب نشده‌اند
-      setState(() => _loads = []);
+    if (!_filtersReady) {
+      setState(() {
+        _loads = [];
+        _infoMessage = '';
+      });
       return;
     }
 
@@ -63,7 +102,7 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
 
     try {
       final url =
-          '${AppConstants.driverLoadsEndpoint}?origin_city_id=$_originCityId&dest_city_id=$_destCityId';
+          '${AppConstants.driverLoadsEndpoint}?origin_province_id=$_originProvinceId&dest_province_id=$_destProvinceId';
       final res = await ApiClient.getJson(url);
 
       if (res['ok'] == true && mounted) {
@@ -76,17 +115,19 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
         if (mounted) setState(() => _isLoading = false);
       }
     } catch (e) {
-      debugPrint("Error fetching loads: $e");
+      debugPrint('Error fetching loads: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
   }
 
-  void _showCitySearchSelector(bool isOrigin) {
+  Future<void> _showProvinceSelector(bool isOrigin) async {
+    await _loadProvinces();
+    if (!mounted) return;
+
     final searchCtrl = TextEditingController();
-    List<dynamic> searchResults = [];
-    bool isSearching = false;
+    List<Map<String, dynamic>> filtered = List<Map<String, dynamic>>.from(_provinces);
 
     showModalBottomSheet(
       context: context,
@@ -96,6 +137,17 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
+          void applyFilter(String value) {
+            final q = value.trim();
+            setModalState(() {
+              filtered = q.isEmpty
+                  ? List<Map<String, dynamic>>.from(_provinces)
+                  : _provinces
+                        .where((p) => p['name'].toString().contains(q))
+                        .toList();
+            });
+          }
+
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -118,57 +170,46 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
                   controller: searchCtrl,
                   autofocus: true,
                   decoration: const InputDecoration(
-                    hintText: 'نام استان یا شهر را وارد کنید',
+                    hintText: 'نام استان را وارد کنید',
                     prefixIcon: Icon(Icons.search),
                   ),
-                  onChanged: (val) async {
-                    if (val.trim().length < 2) return;
-                    setModalState(() => isSearching = true);
-                    try {
-                      final res = await ApiClient.getJson(
-                        '${AppConstants.citiesSearchEndpoint}?q=${val.trim()}',
-                      );
-                      setModalState(() {
-                        searchResults = res['items'] ?? [];
-                        isSearching = false;
-                      });
-                    } catch (_) {
-                      setModalState(() => isSearching = false);
-                    }
-                  },
+                  onChanged: applyFilter,
                 ),
                 const SizedBox(height: 12),
-                if (isSearching) const LinearProgressIndicator(),
                 SizedBox(
-                  height: 250,
-                  child: ListView.builder(
-                    itemCount: searchResults.length,
-                    itemBuilder: (c, idx) {
-                      final item = searchResults[idx];
-                      return ListTile(
-                        title: Text(item['text'].toString()),
-                        leading: const Icon(Icons.location_city_rounded),
-                        onTap: () {
-                          setState(() {
-                            if (isOrigin) {
-                              _originCityId = int.tryParse(
-                                item['id'].toString(),
-                              );
-                              _originCityName = item['text'].toString();
-                            } else {
-                              _destCityId = int.tryParse(item['id'].toString());
-                              _destCityName = item['text'].toString();
-                            }
-                          });
-                          Navigator.pop(ctx);
-                          // فقط وقتی هر دو انتخاب شدند، بارها را بگیر
-                          if (_originCityId != null && _destCityId != null) {
-                            _fetchLoads();
-                          }
-                        },
-                      );
-                    },
-                  ),
+                  height: 320,
+                  child: filtered.isEmpty
+                      ? const Center(child: Text('استانی یافت نشد.'))
+                      : ListView.builder(
+                          itemCount: filtered.length,
+                          itemBuilder: (c, idx) {
+                            final item = filtered[idx];
+                            final id = int.tryParse(item['id'].toString());
+                            final name = item['name'].toString();
+
+                            return ListTile(
+                              title: Text(name),
+                              leading: const Icon(Icons.map_rounded),
+                              onTap: id == null
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        if (isOrigin) {
+                                          _originProvinceId = id;
+                                          _originProvinceName = name;
+                                        } else {
+                                          _destProvinceId = id;
+                                          _destProvinceName = name;
+                                        }
+                                      });
+                                      Navigator.pop(ctx);
+                                      if (_filtersReady) {
+                                        _fetchLoads();
+                                      }
+                                    },
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -180,7 +221,7 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool filtersReady = _originCityId != null && _destCityId != null;
+    final bool filtersReady = _filtersReady;
 
     return Scaffold(
       appBar: AppBar(
@@ -202,15 +243,17 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
               children: [
                 Expanded(
                   child: InkWell(
-                    onTap: () => _showCitySearchSelector(true),
+                    onTap: _isLoadingProvinces
+                        ? null
+                        : () => _showProvinceSelector(true),
                     child: FilterBadge(
                       title: 'مبدا',
-                      value: _originCityName,
-                      showClear: _originCityId != null,
+                      value: _originProvinceName,
+                      showClear: _originProvinceId != null,
                       onClear: () {
                         setState(() {
-                          _originCityId = null;
-                          _originCityName = 'انتخاب مبدا';
+                          _originProvinceId = null;
+                          _originProvinceName = 'انتخاب استان مبدا';
                         });
                         _fetchLoads();
                       },
@@ -223,15 +266,17 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
                 ),
                 Expanded(
                   child: InkWell(
-                    onTap: () => _showCitySearchSelector(false),
+                    onTap: _isLoadingProvinces
+                        ? null
+                        : () => _showProvinceSelector(false),
                     child: FilterBadge(
                       title: 'مقصد',
-                      value: _destCityName,
-                      showClear: _destCityId != null,
+                      value: _destProvinceName,
+                      showClear: _destProvinceId != null,
                       onClear: () {
                         setState(() {
-                          _destCityId = null;
-                          _destCityName = 'انتخاب مقصد';
+                          _destProvinceId = null;
+                          _destProvinceName = 'انتخاب استان مقصد';
                         });
                         _fetchLoads();
                       },
@@ -241,6 +286,7 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
               ],
             ),
           ),
+          if (_isLoadingProvinces) const LinearProgressIndicator(),
           if (_infoMessage.isNotEmpty)
             Container(
               width: double.infinity,
@@ -262,7 +308,7 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
                 : !filtersReady
                 ? const Center(
                     child: Text(
-                      'برای جستجو، مبدا و مقصد را انتخاب کنید.',
+                      'برای جستجو، استان مبدا و استان مقصد را انتخاب کنید.',
                       style: TextStyle(color: Colors.grey),
                     ),
                   )

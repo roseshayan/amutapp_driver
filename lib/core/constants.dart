@@ -11,6 +11,7 @@ class AppConstants {
   static const String verifyIdentityEndpoint = '/api/v1/auth/verify-identity';
   static const String meEndpoint = '/api/v1/me';
   static const String vehicleTypesEndpoint = '/api/v1/meta/vehicle-types';
+  static const String provincesEndpoint = '/api/v1/meta/provinces';
   static const String driverProfileEndpoint = '/api/v1/driver/profile';
   static const String driverDocsEndpoint = '/api/v1/driver/docs';
   static const String driverVerificationVideoEndpoint = '/api/v1/driver/verification-video';

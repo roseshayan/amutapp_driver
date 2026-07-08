@@ -46,6 +46,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   Timer? _notifTimer;
   int _lastNotifiedCount = 0; // برای جلوگیری از تکرار نوتیفیکیشن‌های تکراری
+  bool _isExitDialogOpen = false;
 
   @override
   void initState() {
@@ -152,33 +153,40 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, // جلوگیری از پاپ شدن خودکار
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
+      canPop: false, // جلوگیری از خروج ناگهانی با دکمه Back اندروید
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || _isExitDialogOpen) return;
 
         if (_currentIndex != 0) {
-          // اگر در تبی غیر از داشبورد است، برگرد به داشبورد
+          // اگر در تبی غیر از داشبورد است، فقط به داشبورد برگردد و از اپ خارج نشود.
           _changeTab(0);
-        } else {
-          // اگر در داشبورد است، دیالوگ خروج نشان بده
-          final shouldExit = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('خروج از برنامه'),
-              content: const Text('آیا می‌خواهید از برنامه خارج شوید؟'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('خیر'),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () => SystemNavigator.pop(), // خروج کامل از اپ
-                  child: const Text('بله، خروج'),
-                ),
-              ],
-            ),
-          );
+          return;
+        }
+
+        _isExitDialogOpen = true;
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => AlertDialog(
+            title: const Text('خروج از برنامه'),
+            content: const Text('برای خروج از برنامه مطمئن هستید؟'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('ماندن در برنامه'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('خروج'),
+              ),
+            ],
+          ),
+        );
+        _isExitDialogOpen = false;
+
+        if (shouldExit == true) {
+          SystemNavigator.pop();
         }
       },
       child: Scaffold(
