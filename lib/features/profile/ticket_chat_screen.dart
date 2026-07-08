@@ -104,8 +104,11 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
       if (res['ok'] == true && mounted) {
         final oldLength = _messages.length;
         setState(() {
-          _ticket = res['ticket'];
-          _messages = res['messages'] ?? [];
+          _ticket = (res['ticket'] is Map<String, dynamic>)
+              ? res['ticket'] as Map<String, dynamic>
+              : (res['ticket'] is Map ? Map<String, dynamic>.from(res['ticket'] as Map) : null);
+          final rawMessages = res['messages'] ?? res['items'] ?? res['data'] ?? [];
+          _messages = rawMessages is List ? rawMessages : [];
           _isLoading = false;
         });
         if (oldLength != 0 && oldLength < _messages.length) {
@@ -227,6 +230,13 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
   Widget build(BuildContext context) {
     final bool isClosed = (_ticket?['status']?.toString() == '3');
 
+    if (widget.ticketId <= 0) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('گفتگو')),
+        body: const Center(child: Text('شناسه تیکت نامعتبر است.')),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFE5E5E5),
       appBar: AppBar(
@@ -254,20 +264,26 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
           : Column(
               children: [
                 Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 20,
-                    ),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) =>
-                        _buildMessageBubble(_messages[index]),
-                  ),
+                  child: _messages.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'هنوز پیامی در این گفتگو ثبت نشده است.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: EdgeInsets.fromLTRB(16, 20, 16, 20 + MediaQuery.of(context).padding.bottom),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) =>
+                              _buildMessageBubble(_messages[index]),
+                        ),
                 ),
                 if (isClosed)
-                  Container(
-                    width: double.infinity,
+                  SafeArea(
+                    top: false,
+                    child: Container(
+                      width: double.infinity,
                     color: Colors.grey.shade300,
                     padding: const EdgeInsets.all(16),
                     child: const Text(
@@ -277,10 +293,11 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                         color: Colors.black54,
                         fontWeight: FontWeight.bold,
                       ),
+                      ),
                     ),
                   )
                 else
-                  _buildComposer(),
+                  SafeArea(top: false, child: _buildComposer()),
               ],
             ),
     );

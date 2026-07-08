@@ -83,7 +83,7 @@ class _SupportScreenState extends State<SupportScreen> {
         builder: (context, setModalState) {
           return Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 16,
               left: 20,
               right: 20,
               top: 24,
@@ -143,6 +143,10 @@ class _SupportScreenState extends State<SupportScreen> {
                               if (ctx.mounted) {
                                 Navigator.pop(ctx);
                                 _fetchTickets();
+                                final createdId = int.tryParse((ticketRes['ticket_id'] ?? '').toString());
+                                if (createdId != null && mounted) {
+                                  this.context.push('/ticket-chat', extra: createdId).then((_) => _fetchTickets());
+                                }
                               }
                             } catch (_) {
                               setModalState(() => isSaving = false);
@@ -296,7 +300,7 @@ class _SupportScreenState extends State<SupportScreen> {
                             payload: {'subject': t['subject']},
                           );
                           context
-                              .push('/ticket-chat', extra: t['id'])
+                              .push('/ticket-chat', extra: ticketId)
                               .then((_) => _fetchTickets());
                         },
                         borderRadius: BorderRadius.circular(16),

@@ -97,6 +97,8 @@ class _MainScreenState extends State<MainScreen> {
           screenKey: 'nearby_loads',
           screenTitle: 'بارهای اطراف من',
         );
+      } else if (index == 2) {
+        callHistoryRefreshNotifier.value++;
       } else if (index == 3) {
         ActivityTracker.track(
           eventKey: 'profile_view',
@@ -239,14 +241,16 @@ class _MainScreenState extends State<MainScreen> {
             const ProfileScreen(),
           ],
         ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
           onDestinationSelected: _changeTab,
           backgroundColor: Colors.white,
           indicatorColor: AppTheme.primary.withOpacity(0.15),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: const [
-            NavigationDestination(
+            destinations: const [
+              NavigationDestination(
               icon: Icon(Icons.home_outlined),
               selectedIcon: Icon(Icons.home_rounded, color: AppTheme.primary),
               label: 'داشبورد',
@@ -266,7 +270,8 @@ class _MainScreenState extends State<MainScreen> {
               selectedIcon: Icon(Icons.person_rounded, color: AppTheme.primary),
               label: 'پروفایل',
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

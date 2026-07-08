@@ -21,11 +21,13 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
+  static const int _resendCooldownSeconds = 120;
+
   final _otpCtrl = TextEditingController();
   bool _isLoading = false;
 
   Timer? _timer;
-  int _start = 120;
+  int _start = _resendCooldownSeconds;
   bool _canResend = false;
   String? _comingSms;
 
@@ -52,6 +54,7 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
   }
 
   void startTimer() {
+    _timer?.cancel();
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(oneSec, (Timer timer) {
       if (_start == 0) {
@@ -178,11 +181,10 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
       // بررسی موفقیت‌آمیز بودن ارسال مجدد
       if (res['ok'] == true) {
         if (mounted) {
-          // گرفتن زمان انتظار از سرور (اگر نداد همون 120 ثانیه پیش‌فرض)
-          final int resendTime = res['resend_in_sec'] ?? 120;
-
           setState(() {
-            _start = resendTime;
+            // تایمر نمایش داده‌شده در اپ باید مثل انقضای OTP همیشه ۲ دقیقه باشد،
+            // حتی اگر سرور resend_in_sec را ۶۰ ثانیه برگرداند.
+            _start = _resendCooldownSeconds;
             _canResend = false;
           });
 
@@ -230,6 +232,8 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
 
   @override
   void dispose() {
+    _timer?.cancel();
+    _otpCtrl.dispose();
     SmsAutoFill().unregisterListener();
     super.dispose();
   }

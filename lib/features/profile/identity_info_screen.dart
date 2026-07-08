@@ -47,7 +47,7 @@ class _IdentityInfoScreenState extends State<IdentityInfoScreen> {
       body: _user == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
               child: Column(
                 children: [
                   // عکس پروفایل

@@ -55,7 +55,7 @@ class AmutBarDriverApp extends StatelessWidget {
         GoRoute(
           path: '/ticket-chat',
           builder: (_, state) {
-            final id = state.extra as int;
+            final id = int.tryParse((state.extra ?? '').toString()) ?? 0;
             return TicketChatScreen(ticketId: id);
           },
         ),
@@ -70,7 +70,7 @@ class AmutBarDriverApp extends StatelessWidget {
         GoRoute(
           path: '/load-details',
           builder: (_, state) {
-            final id = state.extra as int;
+            final id = int.tryParse((state.extra ?? '').toString()) ?? 0;
             return LoadDetailsScreen(loadId: id);
           },
         ),

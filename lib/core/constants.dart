@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String baseUrl = 'https://saba-exchange.com/amutadmin';
+  static const String baseUrl = 'https://amutapp.com/amutadmin';
 
   static const String appInfoEndpoint = '/api/v1/meta/app-config';
   static const String sendOtpEndpoint = '/api/v1/auth/request-otp';

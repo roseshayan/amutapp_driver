@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/api_client.dart';
 import '../../core/theme.dart';
 
+final ValueNotifier<int> callHistoryRefreshNotifier = ValueNotifier<int>(0);
+
 class CallHistoryScreen extends StatefulWidget {
   const CallHistoryScreen({super.key});
 
@@ -17,7 +19,20 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    callHistoryRefreshNotifier.addListener(_handleExternalRefresh);
     _fetchHistory();
+  }
+
+  @override
+  void dispose() {
+    callHistoryRefreshNotifier.removeListener(_handleExternalRefresh);
+    super.dispose();
+  }
+
+  void _handleExternalRefresh() {
+    if (mounted) {
+      _fetchHistory();
+    }
   }
 
   Future<void> _fetchHistory() async {
@@ -53,7 +68,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
           : RefreshIndicator(
               onRefresh: _fetchHistory,
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
                 itemCount: _calls.length,
                 itemBuilder: (context, index) {
                   final call = _calls[index];

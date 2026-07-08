@@ -6,6 +6,7 @@ import '../../core/activity_tracker.dart';
 import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/theme.dart';
+import '../calls/call_history_screen.dart';
 
 class LoadDetailsScreen extends StatefulWidget {
   final int loadId;
@@ -106,12 +107,15 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
       },
     );
     try {
-      await ApiClient.postJson(AppConstants.logCallEndpoint, {
+      final logRes = await ApiClient.postJson(AppConstants.logCallEndpoint, {
         'load_id': widget.loadId,
         'company_id': _loadDetails?['company_id'] ?? 0,
         'client_platform': Platform.isIOS ? 'ios' : 'android',
-        'client_version': 1,
+        'client_version': 3,
       });
+      if (logRes['logged'] == true) {
+        callHistoryRefreshNotifier.value++;
+      }
       final Uri callUri = Uri(scheme: 'tel', path: phone);
       if (await canLaunchUrl(callUri)) {
         await launchUrl(callUri);
@@ -185,8 +189,10 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('کد بار: ${_loadDetails!['public_code']}')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -332,6 +338,7 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
               ),
             const SizedBox(height: 24),
           ],
+        ),
         ),
       ),
       bottomNavigationBar: SafeArea(
