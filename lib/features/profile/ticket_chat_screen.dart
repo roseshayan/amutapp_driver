@@ -106,8 +106,11 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
         setState(() {
           _ticket = (res['ticket'] is Map<String, dynamic>)
               ? res['ticket'] as Map<String, dynamic>
-              : (res['ticket'] is Map ? Map<String, dynamic>.from(res['ticket'] as Map) : null);
-          final rawMessages = res['messages'] ?? res['items'] ?? res['data'] ?? [];
+              : (res['ticket'] is Map
+                    ? Map<String, dynamic>.from(res['ticket'] as Map)
+                    : null);
+          final rawMessages =
+              res['messages'] ?? res['items'] ?? res['data'] ?? [];
           _messages = rawMessages is List ? rawMessages : [];
           _isLoading = false;
         });
@@ -273,7 +276,12 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                         )
                       : ListView.builder(
                           controller: _scrollController,
-                          padding: EdgeInsets.fromLTRB(16, 20, 16, 20 + MediaQuery.of(context).padding.bottom),
+                          padding: EdgeInsets.fromLTRB(
+                            16,
+                            20,
+                            16,
+                            20 + MediaQuery.of(context).padding.bottom,
+                          ),
                           itemCount: _messages.length,
                           itemBuilder: (context, index) =>
                               _buildMessageBubble(_messages[index]),
@@ -284,15 +292,15 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
                     top: false,
                     child: Container(
                       width: double.infinity,
-                    color: Colors.grey.shade300,
-                    padding: const EdgeInsets.all(16),
-                    child: const Text(
-                      'این پیام بسته شده است.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      color: Colors.grey.shade300,
+                      padding: const EdgeInsets.all(16),
+                      child: const Text(
+                        'این پیام بسته شده است.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   )
@@ -403,9 +411,7 @@ class _TicketChatScreenState extends State<TicketChatScreen> {
   Widget _buildMessageBubble(dynamic m) {
     final isMe = m['sender_user_id'].toString() == _myUserId.toString();
     final timeStr = _formatDateTime(m['created_at']);
-    final msgType = m['message_type'] is int
-        ? m['message_type']
-        : int.parse(m['message_type'].toString());
+    final msgType = int.tryParse(m['message_type']?.toString() ?? '') ?? 1;
     final msgText = m['message'] ?? '';
 
     // 👈 اعمال تابع فیکس کننده آدرس روی لینک دریافتی از سرور
