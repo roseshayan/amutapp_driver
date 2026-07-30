@@ -226,19 +226,10 @@ class _IdentityScreenState extends State<IdentityScreen> {
       }
     } catch (e) {
       if (mounted) {
-        String errorMsg = 'خطا در احراز هویت';
-        if (e.toString().contains('message')) {
-          errorMsg = e
-              .toString()
-              .replaceAll(RegExp(r'Exception:|DioError:|HttpException:'), '')
-              .trim();
-          if (errorMsg.contains('message:')) {
-            errorMsg = errorMsg.split('message:')[1].replaceAll('}', '').trim();
-          }
-        }
+        final apiError = e is ApiException ? e : null;
+        final errorMsg = apiError?.message ?? 'خطا در احراز هویت';
 
-        if (e.toString().contains('401') ||
-            e.toString().contains('Unauthorized')) {
+        if (apiError?.statusCode == 401) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('نشست کاربری منقضی شده. لطفا مجدد وارد شوید.'),

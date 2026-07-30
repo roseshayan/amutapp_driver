@@ -68,7 +68,13 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
         <string>اپلیکیشن آموت‌بار برای یافتن بارهای نزدیک شما و پر کردن خودکار شهر مبدا، نیاز به دسترسی موقعیت مکانی دارد.</string>
-        <key>NSLocationAlwaysUsageDescription</key>
+	<key>NSLocationAlwaysUsageDescription</key>
         <string>اپلیکیشن آموت‌بار برای یافتن بارهای نزدیک شما نیاز به دسترسی موقعیت مکانی دارد.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>برای ثبت ویدئوی احراز هویت و تصویر مدارک، دسترسی به دوربین لازم است.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>برای ضبط صدای عبارت احراز هویت در ویدئو، دسترسی به میکروفون لازم است.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>برای انتخاب تصویر مدارک و پیوست تیکت، دسترسی به تصاویر لازم است.</string>
 </dict>
 </plist>

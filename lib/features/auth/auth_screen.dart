@@ -62,19 +62,9 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } catch (e) {
       if (mounted) {
-        String errorMsg = 'خطا در ارسال پیامک. لطفاً مجدد تلاش کنید.';
-        String errStr = e.toString();
-
-        // استخراج پیام خطای بک‌اند از داخل لاگِ ارور (مثل ارور 429)
-        if (errStr.contains('message:')) {
-          errorMsg = errStr
-              .split('message:')[1]
-              .split(',')[0]
-              .replaceAll('}', '')
-              .trim();
-        } else if (errStr.contains('Exception:')) {
-          errorMsg = errStr.replaceAll('Exception:', '').trim();
-        }
+        final errorMsg = e is ApiException
+            ? e.message
+            : 'خطا در ارسال پیامک. لطفاً مجدد تلاش کنید.';
 
         // نمایش ارور دقیق به کاربر
         ScaffoldMessenger.of(context).showSnackBar(

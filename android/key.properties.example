@@ -1,0 +1,4 @@
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=amutbar_driver
+storeFile=/absolute/path/to/authorized-driver-upload-keystore.jks

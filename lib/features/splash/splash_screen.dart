@@ -421,23 +421,17 @@ class _SplashScreenState extends State<SplashScreen>
           final bool needsVideo =
               onboarding['needs_verification_video'] ?? false;
 
-          // اولویت اول: اگر تایید شده است، مسقیماً برو به داشبورد
-          if (vStatus == 1) {
-            context.go('/dashboard');
-          }
-          // اولویت دوم: اگر رد شده است، حتماً باید برگردد به فرم هویتی تا خطا را ببیند و اصلاح کند
-          else if (vStatus == 2) {
+          // رد هویت همیشه کاربر را به فرم اصلاح اطلاعات برمی‌گرداند.
+          if (vStatus == 2) {
             context.go('/identity');
-          }
-          // اولویت سوم: اگر رد نشده بود، ببین تو کدوم مرحله گیر کرده
-          else if (!profileCompleted) {
+          } else if (!profileCompleted || vStatus != 1) {
             context.go('/identity');
           } else if (needsVehicleInfo) {
             context.go('/vehicle-setup');
           } else if (needsVideo) {
             context.go('/video-verify');
           } else {
-            // حالت پیش‌فرض: تمام مراحل تکمیل شده و در انتظار تایید ادمین است (vStatus == 0)
+            // فقط پس از تکمیل همه‌ی مراحل وارد داشبورد می‌شود.
             context.go('/dashboard');
           }
         } else if (mounted) {

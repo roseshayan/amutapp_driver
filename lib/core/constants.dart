@@ -1,5 +1,8 @@
 class AppConstants {
-  static const String baseUrl = 'https://amutapp.com/amutadmin';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://amutapp.com/amutadmin',
+  );
 
   static const String appInfoEndpoint = '/api/v1/meta/app-config';
   static const String sendOtpEndpoint = '/api/v1/auth/request-otp';
@@ -35,11 +38,16 @@ class AppConstants {
     if (raw.isEmpty) return '';
 
     var fixed = raw;
-
-    if (fixed.contains('amutbar-admin.test')) {
-      fixed = fixed
-          .replaceAll('http://amutbar-admin.test', baseUrl)
-          .replaceAll('https://amutbar-admin.test', baseUrl);
+    for (final localBase in const [
+      'http://amutbar-admin.test',
+      'https://amutbar-admin.test',
+      'http://10.0.2.2/amutbar-admin',
+      'https://10.0.2.2/amutbar-admin',
+    ]) {
+      if (fixed.startsWith(localBase)) {
+        fixed = '$baseUrl${fixed.substring(localBase.length)}';
+        break;
+      }
     }
 
     final uri = Uri.tryParse(fixed);
@@ -58,4 +66,3 @@ class AppConstants {
     return '$baseUrl/$fixed';
   }
 }
-

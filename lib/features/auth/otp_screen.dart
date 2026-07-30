@@ -137,32 +137,46 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
           await AppStorage.setUserJson(jsonEncode(res['profile']));
         }
 
-        // بررسی وضعیت احراز هویت
+        // بررسی وضعیت همه مراحل onboarding، نه فقط احراز هویت.
         bool isIdentityVerified = false;
+        bool needsVehicleInfo = false;
+        bool needsVideo = false;
         try {
-          // وضعیت احراز از پروفایل راننده
           final driver = res['profile']['driver'];
           if (driver is Map) {
             final vs = driver['verification_status'];
             isIdentityVerified = (vs == 1 || vs == '1');
           }
+          final onboarding = res['profile']['onboarding'];
+          if (onboarding is Map) {
+            needsVehicleInfo = onboarding['needs_vehicle_info'] == true;
+            needsVideo = onboarding['needs_verification_video'] == true;
+          }
         } catch (_) {}
 
         if (!mounted) return;
 
-        if (isIdentityVerified) {
-          // اگر قبلا احراز شده، برو داشبورد
-          context.go('/dashboard');
-        } else {
-          // اگر جدید است یا احراز نشده، برو صفحه احراز هویت
+        if (!isIdentityVerified) {
           context.go('/identity');
+        } else if (needsVehicleInfo) {
+          context.go('/vehicle-setup');
+        } else if (needsVideo) {
+          context.go('/video-verify');
+        } else {
+          context.go('/dashboard');
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('کد وارد شده صحیح نیست')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              e is ApiException ? e.message : 'کد وارد شده صحیح نیست',
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -203,18 +217,9 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
       }
     } catch (e) {
       if (mounted) {
-        String errorMsg = 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.';
-        String errStr = e.toString();
-
-        if (errStr.contains('message:')) {
-          errorMsg = errStr
-              .split('message:')[1]
-              .split(',')[0]
-              .replaceAll('}', '')
-              .trim();
-        } else if (errStr.contains('Exception:')) {
-          errorMsg = errStr.replaceAll('Exception:', '').trim();
-        }
+        final errorMsg = e is ApiException
+            ? e.message
+            : 'خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.';
 
         // چون خطایی رخ داده، دکمه «ارسال مجدد» هم‌چنان فعال می‌مونه
         ScaffoldMessenger.of(context).showSnackBar(

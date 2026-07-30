@@ -62,6 +62,7 @@ lib/
 2.  **Install dependencies:**
     ```bash
     flutter pub get
+    flutter analyze
     ```
 
 3.  **Run the application:**
@@ -80,6 +81,11 @@ flutter pub run flutter_launcher_icons
 
 - **Localization:** The app defaults to Persian (`fa_IR`). RTL support is enabled by default.
 - **Permissions:** Ensure location and camera permissions are granted for full functionality.
+- **API URL:** Pass the production endpoint with
+  `--dart-define=API_BASE_URL=https://YOUR_DOMAIN/YOUR_ADMIN_PATH`.
+- **Release signing:** Copy `android/key.properties.example` to the ignored
+  `android/key.properties` and reference only the authorized Driver keystore.
+  Release builds fail clearly when signing is not configured.
 
 ## 🤝 Contributing
 
