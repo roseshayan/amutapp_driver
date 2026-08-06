@@ -130,7 +130,9 @@ class _SplashScreenState extends State<SplashScreen>
         info['logo_url'] = AppConstants.fixUrl(info['logo_url'].toString());
       }
       if (info['favicon_url'] != null) {
-        info['favicon_url'] = AppConstants.fixUrl(info['favicon_url'].toString());
+        info['favicon_url'] = AppConstants.fixUrl(
+          info['favicon_url'].toString(),
+        );
       }
 
       AppInfoCache.setRaw(info);
@@ -437,7 +439,6 @@ class _SplashScreenState extends State<SplashScreen>
         } else if (mounted) {
           context.go('/identity');
         }
-
       } catch (e) {
         // اگر سرور ارور داد (یعنی کاربر از پنل ادمین پاک شده یا توکن باطل شده)
         // تمام کش و توکن‌های مربوط به کاربر حذف‌شده رو پاک می‌کنیم (رفع اروری که داشتی)

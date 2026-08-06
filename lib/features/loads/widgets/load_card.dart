@@ -170,9 +170,7 @@ class LoadCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => LoadDetailsScreen(
-                        loadId: loadId,
-                      ),
+                      builder: (_) => LoadDetailsScreen(loadId: loadId),
                     ),
                   );
                 },

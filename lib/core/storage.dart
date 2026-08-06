@@ -40,7 +40,6 @@ class AppStorage {
     return id;
   }
 
-
   static Future<void> clearAll() async {
     await _s.delete(key: _tokenKey);
     await _s.delete(key: _refreshTokenKey);

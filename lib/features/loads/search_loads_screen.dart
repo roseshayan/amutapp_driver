@@ -45,7 +45,8 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
     super.dispose();
   }
 
-  bool get _filtersReady => _originProvinceId != null && _destProvinceId != null;
+  bool get _filtersReady =>
+      _originProvinceId != null && _destProvinceId != null;
 
   void _startAutoRefresh() {
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
@@ -135,15 +136,24 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
     final originMatches = originProvinceId != null
         ? originProvinceId == _originProvinceId
         : _textContainsProvince(item['origin_province'], _originProvinceName) ||
-              _textContainsProvince(item['originProvince'], _originProvinceName) ||
+              _textContainsProvince(
+                item['originProvince'],
+                _originProvinceName,
+              ) ||
               _textContainsProvince(item['origin'], _originProvinceName);
 
     final destMatches = destProvinceId != null
         ? destProvinceId == _destProvinceId
         : _textContainsProvince(item['dest_province'], _destProvinceName) ||
-              _textContainsProvince(item['destination_province'], _destProvinceName) ||
+              _textContainsProvince(
+                item['destination_province'],
+                _destProvinceName,
+              ) ||
               _textContainsProvince(item['destProvince'], _destProvinceName) ||
-              _textContainsProvince(item['destinationProvince'], _destProvinceName) ||
+              _textContainsProvince(
+                item['destinationProvince'],
+                _destProvinceName,
+              ) ||
               _textContainsProvince(item['destination'], _destProvinceName);
 
     return originMatches && destMatches;
@@ -178,8 +188,12 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
       final res = await ApiClient.getJson(url);
 
       if (res['ok'] == true && mounted) {
-        final rawItems = (res['items'] is List) ? res['items'] as List : <dynamic>[];
-        final filteredItems = rawItems.where(_loadMatchesSelectedProvinces).toList();
+        final rawItems = (res['items'] is List)
+            ? res['items'] as List
+            : <dynamic>[];
+        final filteredItems = rawItems
+            .where(_loadMatchesSelectedProvinces)
+            .toList();
         if (!isBackgroundRefresh) {
           ActivityTracker.track(
             eventKey: 'search_loads',
@@ -224,7 +238,9 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
     if (!mounted) return;
 
     final searchCtrl = TextEditingController();
-    List<Map<String, dynamic>> filtered = List<Map<String, dynamic>>.from(_provinces);
+    List<Map<String, dynamic>> filtered = List<Map<String, dynamic>>.from(
+      _provinces,
+    );
 
     showModalBottomSheet(
       context: context,
@@ -247,7 +263,10 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
 
           return Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 16,
+              bottom:
+                  MediaQuery.of(ctx).viewInsets.bottom +
+                  MediaQuery.of(ctx).padding.bottom +
+                  16,
               left: 20,
               right: 20,
               top: 24,
@@ -304,7 +323,9 @@ class _SearchLoadsScreenState extends State<SearchLoadsScreen> {
                                         screenKey: 'search_loads',
                                         screenTitle: 'جستجوی بار',
                                         payload: {
-                                          'filter': isOrigin ? 'origin_province' : 'dest_province',
+                                          'filter': isOrigin
+                                              ? 'origin_province'
+                                              : 'dest_province',
                                           'province_id': id,
                                           'province_name': name,
                                         },

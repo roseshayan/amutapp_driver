@@ -65,7 +65,8 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
   }
 
   void _hydrateFromProfile(Map<String, dynamic> data) {
-    final isProfileShape = data.containsKey('user') || data.containsKey('driver');
+    final isProfileShape =
+        data.containsKey('user') || data.containsKey('driver');
     final user = isProfileShape ? data['user'] : null;
     final driver = isProfileShape ? data['driver'] : data;
 
@@ -83,8 +84,7 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
     _engineCtrl.text = _driver!['engine_number']?.toString() ?? '';
     _chassisCtrl.text = _driver!['chassis_number']?.toString() ?? '';
     _insuranceNoCtrl.text = _driver!['insurance_number']?.toString() ?? '';
-    _insuranceExpiryCtrl.text =
-        _driver!['insurance_expiry']?.toString() ?? '';
+    _insuranceExpiryCtrl.text = _driver!['insurance_expiry']?.toString() ?? '';
     _plateValue = _driver!['plate_number']?.toString() ?? '';
   }
 
@@ -275,7 +275,12 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).padding.bottom),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                20 + MediaQuery.of(context).padding.bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

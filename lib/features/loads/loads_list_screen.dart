@@ -224,7 +224,10 @@ class _LoadsListScreenState extends State<LoadsListScreen> {
         builder: (context, setModalState) {
           return Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 16,
+              bottom:
+                  MediaQuery.of(ctx).viewInsets.bottom +
+                  MediaQuery.of(ctx).padding.bottom +
+                  16,
               left: 20,
               right: 20,
               top: 24,

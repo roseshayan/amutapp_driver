@@ -184,7 +184,8 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
       }
     }
 
-    int sortKey(Map<String, dynamic> a) => _asInt(a['sort']) ?? _asInt(a['id']) ?? 0;
+    int sortKey(Map<String, dynamic> a) =>
+        _asInt(a['sort']) ?? _asInt(a['id']) ?? 0;
 
     final out = <DropdownMenuItem<int>>[];
 

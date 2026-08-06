@@ -91,7 +91,7 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       final response = await ApiClient.getJson(AppConstants.appInfoEndpoint);
       AppInfoCache.setRaw(response);
-        } catch (e) {
+    } catch (e) {
       debugPrint('Error fetching terms: $e');
     }
 

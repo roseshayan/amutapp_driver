@@ -68,7 +68,12 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
           : RefreshIndicator(
               onRefresh: _fetchHistory,
               child: ListView.builder(
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  16 + MediaQuery.of(context).padding.bottom,
+                ),
                 itemCount: _calls.length,
                 itemBuilder: (context, index) {
                   final call = _calls[index];

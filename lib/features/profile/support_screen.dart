@@ -83,7 +83,10 @@ class _SupportScreenState extends State<SupportScreen> {
         builder: (context, setModalState) {
           return Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 16,
+              bottom:
+                  MediaQuery.of(ctx).viewInsets.bottom +
+                  MediaQuery.of(ctx).padding.bottom +
+                  16,
               left: 20,
               right: 20,
               top: 24,
@@ -136,16 +139,24 @@ class _SupportScreenState extends State<SupportScreen> {
                                 screenKey: 'support',
                                 screenTitle: 'پشتیبانی و پیام‌ها',
                                 entityType: 'ticket',
-                                entityId: int.tryParse((ticketRes['ticket_id'] ?? '').toString()),
-                                ticketId: int.tryParse((ticketRes['ticket_id'] ?? '').toString()),
+                                entityId: int.tryParse(
+                                  (ticketRes['ticket_id'] ?? '').toString(),
+                                ),
+                                ticketId: int.tryParse(
+                                  (ticketRes['ticket_id'] ?? '').toString(),
+                                ),
                                 payload: {'subject': subjectCtrl.text.trim()},
                               );
                               if (ctx.mounted) {
                                 Navigator.pop(ctx);
                                 _fetchTickets();
-                                final createdId = int.tryParse((ticketRes['ticket_id'] ?? '').toString());
+                                final createdId = int.tryParse(
+                                  (ticketRes['ticket_id'] ?? '').toString(),
+                                );
                                 if (createdId != null && mounted) {
-                                  this.context.push('/ticket-chat', extra: createdId).then((_) => _fetchTickets());
+                                  this.context
+                                      .push('/ticket-chat', extra: createdId)
+                                      .then((_) => _fetchTickets());
                                 }
                               }
                             } catch (_) {
@@ -289,7 +300,8 @@ class _SupportScreenState extends State<SupportScreen> {
 
                       return InkWell(
                         onTap: () {
-                          final ticketId = int.tryParse(t['id'].toString()) ?? 0;
+                          final ticketId =
+                              int.tryParse(t['id'].toString()) ?? 0;
                           ActivityTracker.track(
                             eventKey: 'ticket_view',
                             screenKey: 'support',
