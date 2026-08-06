@@ -20,7 +20,7 @@ class OtpScreen extends StatefulWidget {
   State<OtpScreen> createState() => _OtpScreenState();
 }
 
-class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
+class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
   static const int _resendCooldownSeconds = 120;
 
   final _otpCtrl = TextEditingController();
@@ -29,7 +29,6 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
   Timer? _timer;
   int _start = _resendCooldownSeconds;
   bool _canResend = false;
-  String? _comingSms;
 
   @override
   void initState() {
@@ -168,9 +167,7 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill{
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               e is ApiException ? e.message : 'کد وارد شده صحیح نیست',

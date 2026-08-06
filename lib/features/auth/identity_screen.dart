@@ -46,10 +46,17 @@ class _IdentityScreenState extends State<IdentityScreen> {
   ];
   List<int> get _years =>
       List<int>.generate(106, (i) => (DateTime.now().year - 621) - i);
-  List<int> get _days => List<int>.generate(31, (i) => i + 1);
+  List<int> get _days {
+    if (_selectedYear == null || _selectedMonth == null) {
+      return List<int>.generate(31, (i) => i + 1);
+    }
+
+    final count = Jalali(_selectedYear!, _selectedMonth!, 1).monthLength;
+
+    return List<int>.generate(count, (i) => i + 1);
+  }
 
   bool _isLoading = false;
-  String? _selectedDateServerFormat;
 
   bool get _requireSerial {
     return AppInfoCache.requireNationalSerial;
@@ -87,27 +94,6 @@ class _IdentityScreenState extends State<IdentityScreen> {
           }
         }
       } catch (_) {}
-    }
-  }
-
-  Future<void> _pickDate() async {
-    FocusScope.of(context).requestFocus(FocusNode());
-    Jalali? picked = await showPersianDatePicker(
-      context: context,
-      initialDate: Jalali(1370, 1, 1),
-      firstDate: Jalali(1300, 1, 1),
-      lastDate: Jalali.now(),
-      confirmText: 'تایید',
-      cancelText: 'انصراف',
-    );
-
-    if (picked != null) {
-      final formatted =
-          '${picked.year}/${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}';
-      setState(() {
-        _birthDateCtrl.text = formatted;
-        _selectedDateServerFormat = formatted;
-      });
     }
   }
 

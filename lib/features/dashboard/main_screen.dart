@@ -23,7 +23,11 @@ void handleNotificationRouting(BuildContext context) {
   final Map<String, dynamic>? data = notif['data'];
 
   // فراخوانی API برای خوانده شدن اعلان‌ها
-  ApiClient.getJson(AppConstants.notificationsEndpoint).catchError((_) {});
+  unawaited(
+    ApiClient.getJson(AppConstants.notificationsEndpoint).catchError((e, st) {
+      return <String, dynamic>{};
+    }),
+  );
 
   if (type == 'ticket_reply' && data != null && data['ticket_id'] != null) {
     final ticketId = int.tryParse(data['ticket_id'].toString());
@@ -245,31 +249,37 @@ class _MainScreenState extends State<MainScreen> {
           top: false,
           child: NavigationBar(
             selectedIndex: _currentIndex,
-          onDestinationSelected: _changeTab,
-          backgroundColor: Colors.white,
-          indicatorColor: AppTheme.primary.withOpacity(0.15),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            onDestinationSelected: _changeTab,
+            backgroundColor: Colors.white,
+            indicatorColor: AppTheme.primary.withOpacity(0.15),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             destinations: const [
               NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded, color: AppTheme.primary),
-              label: 'داشبورد',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.location_on_outlined),
-              selectedIcon: Icon(Icons.location_on, color: AppTheme.primary),
-              label: 'اطراف من',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.phone_in_talk_outlined),
-              selectedIcon: Icon(Icons.phone_in_talk, color: AppTheme.primary),
-              label: 'تماس‌ها',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded, color: AppTheme.primary),
-              label: 'پروفایل',
-            ),
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home_rounded, color: AppTheme.primary),
+                label: 'داشبورد',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.location_on_outlined),
+                selectedIcon: Icon(Icons.location_on, color: AppTheme.primary),
+                label: 'اطراف من',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.phone_in_talk_outlined),
+                selectedIcon: Icon(
+                  Icons.phone_in_talk,
+                  color: AppTheme.primary,
+                ),
+                label: 'تماس‌ها',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline_rounded),
+                selectedIcon: Icon(
+                  Icons.person_rounded,
+                  color: AppTheme.primary,
+                ),
+                label: 'پروفایل',
+              ),
             ],
           ),
         ),

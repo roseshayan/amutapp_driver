@@ -4,7 +4,8 @@ class AppConstants {
     defaultValue: 'https://amutapp.com/amutadmin',
   );
 
-  static const String appInfoEndpoint = '/api/v1/meta/app-config';
+  static const String appInfoEndpoint =
+      '/api/v1/meta/app-config?target_app_id=1';
   static const String sendOtpEndpoint = '/api/v1/auth/request-otp';
   static const String verifyOtpEndpoint = '/api/v1/auth/verify-otp';
 
@@ -17,19 +18,22 @@ class AppConstants {
   static const String provincesEndpoint = '/api/v1/meta/provinces';
   static const String driverProfileEndpoint = '/api/v1/driver/profile';
   static const String driverDocsEndpoint = '/api/v1/driver/docs';
-  static const String driverVerificationVideoEndpoint = '/api/v1/driver/verification-video';
+  static const String driverVerificationVideoEndpoint =
+      '/api/v1/driver/verification-video';
 
   // --- اندپوینت‌های جدید حمل و نقل و باربری رانندگان ---
   static const String driverLoadsEndpoint = '/api/v1/driver/loads';
   static const String citiesSearchEndpoint = '/api/v1/meta/cities/search';
   static const String logCallEndpoint = '/api/v1/driver/calls/log';
   static const String driverActivityEndpoint = '/api/v1/driver/activity';
-  static const String companyActiveLoadsEndpoint = '/api/v1/companies/active-loads';
+  static const String companyActiveLoadsEndpoint =
+      '/api/v1/companies/active-loads';
 
   // سایر موارد قبلی
   static const String bannersEndpoint = '/api/v1/banners';
   static const String ticketsEndpoint = '/api/v1/support/tickets';
-  static const String unreadNotifsCountEndpoint = '/api/v1/me/notifications/unread-count';
+  static const String unreadNotifsCountEndpoint =
+      '/api/v1/me/notifications/unread-count';
   static const String notificationsEndpoint = '/api/v1/me/notifications';
 
   /// متد کمکی برای اصلاح لینک‌هایی که ممکن است نسبی باشند یا هنوز دامنه‌ی تستی داشته باشند
