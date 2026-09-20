@@ -440,10 +440,25 @@ class _SplashScreenState extends State<SplashScreen>
           context.go('/identity');
         }
       } catch (e) {
-        // اگر سرور ارور داد (یعنی کاربر از پنل ادمین پاک شده یا توکن باطل شده)
-        // تمام کش و توکن‌های مربوط به کاربر حذف‌شده رو پاک می‌کنیم (رفع اروری که داشتی)
-        await AppStorage.clearAll();
-        if (mounted) context.go('/auth');
+        if (e is ApiException && e.statusCode == 401) {
+          await AppStorage.clearAll();
+          if (mounted) context.go('/auth');
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: const Duration(minutes: 5),
+              content: Text(
+                e is ApiException
+                    ? e.displayMessage
+                    : 'دریافت وضعیت حساب انجام نشد؛ اتصال را بررسی کنید.',
+              ),
+              action: SnackBarAction(
+                label: 'تلاش مجدد',
+                onPressed: _checkLoginState,
+              ),
+            ),
+          );
+        }
       }
     } else {
       if (mounted) context.go('/auth');

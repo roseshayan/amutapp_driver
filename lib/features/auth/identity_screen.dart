@@ -213,7 +213,7 @@ class _IdentityScreenState extends State<IdentityScreen> {
     } catch (e) {
       if (mounted) {
         final apiError = e is ApiException ? e : null;
-        final errorMsg = apiError?.message ?? 'خطا در احراز هویت';
+        final errorMsg = apiError?.displayMessage ?? 'خطا در احراز هویت';
 
         if (apiError?.statusCode == 401) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -538,7 +538,7 @@ class _IdentityScreenState extends State<IdentityScreen> {
                           validator: (v) {
                             if (v == null || v.isEmpty)
                               return 'سریال کارت الزامی است';
-                            if (v.length < 8) return 'سریال معتبر نیست';
+                            if (v.length < 5) return 'سریال معتبر نیست';
                             return null;
                           },
                         ),

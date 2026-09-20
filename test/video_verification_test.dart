@@ -16,6 +16,21 @@ void main() {
     ApiClient.dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (request, handler) {
+          if (request.path == '/api/v1/auth/video-challenge') {
+            handler.resolve(
+              Response(
+                requestOptions: request,
+                statusCode: 200,
+                data: {
+                  'ok': true,
+                  'challenge_token': 'test-token',
+                  'speech_text': 'اینجانب کاربر آزمایشی موافقم.',
+                  'expires_in': 600,
+                },
+              ),
+            );
+            return;
+          }
           final data = request.path == AppConstants.appInfoEndpoint
               ? <String, dynamic>{
                   'ok': !fail,
@@ -67,6 +82,8 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('مشاهده ویدئوی آموزشی نحوه احراز هویت'), findsOneWidget);
+      await tester.tap(find.text('دریافت متن جدید ضبط'));
+      await tester.pumpAndSettle();
       expect(find.text('اینجانب کاربر آزمایشی موافقم.'), findsOneWidget);
       expect(find.text('فعال کردن دوربین'), findsOneWidget);
       expect(tester.takeException(), isNull);

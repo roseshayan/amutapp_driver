@@ -22,6 +22,9 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
   String? _error;
   String _phrase = '', _guideText = '', _guideUrl = '';
   int _maxSeconds = 10, _remaining = 10;
+  final _serial = TextEditingController();
+  String _challengeToken = '';
+  DateTime? _challengeExpires;
 
   @override
   void initState() {
@@ -33,6 +36,7 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
   void dispose() {
     _timer?.cancel();
     _camera?.dispose();
+    _serial.dispose();
     super.dispose();
   }
 
@@ -69,15 +73,7 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
       _maxSeconds = (int.tryParse('${verification['video_max_seconds']}') ?? 10)
           .clamp(1, 30);
       _remaining = _maxSeconds;
-      final template = (verification['video_phrase_template'] ?? '')
-          .toString()
-          .trim();
-      _phrase =
-          (template.isEmpty
-                  ? 'اینجانب {full_name} با قوانین {company_name} موافقت می‌کنم.'
-                  : template)
-              .replaceAll('{full_name}', '${me['user']?['full_name'] ?? ''}')
-              .replaceAll('{company_name}', AppInfoCache.appName);
+      _phrase = '';
     } catch (e) {
       _error = e is ApiException
           ? e.message
@@ -90,6 +86,42 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
   void _message(String text) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+    }
+  }
+
+  Future<void> _fetchChallenge() async {
+    if (_busy || _recording) return;
+    setState(() {
+      _busy = true;
+      _challengeToken = '';
+    });
+    try {
+      final result = await ApiClient.postJson('/api/v1/auth/video-challenge', {
+        if (_serial.text.trim().isNotEmpty) 'card_serial': _serial.text.trim(),
+      });
+      if (!mounted) return;
+      if (result['skipped'] == true) {
+        context.go('/dashboard');
+        return;
+      }
+      final token = result['challenge_token'];
+      final phrase = result['speech_text'];
+      if (token is! String || phrase is! String || phrase.length < 10) {
+        throw const ApiException('متن ضبط معتبر دریافت نشد؛ دوباره تلاش کنید.');
+      }
+      setState(() {
+        _challengeToken = token;
+        _phrase = phrase;
+        _challengeExpires = DateTime.now().add(
+          Duration(seconds: int.tryParse('${result['expires_in']}') ?? 600),
+        );
+      });
+    } catch (e) {
+      _message(
+        e is ApiException ? e.displayMessage : 'دریافت متن ضبط انجام نشد.',
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -128,6 +160,13 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
 
   Future<void> _start() async {
     if (_busy || _recording || _camera == null) return;
+    if (_challengeToken.isEmpty ||
+        _challengeExpires == null ||
+        DateTime.now().isAfter(_challengeExpires!)) {
+      setState(() => _challengeToken = '');
+      _message('متن جدید دریافت کنید و پیش از ضبط آن را بخوانید.');
+      return;
+    }
     setState(() => _busy = true);
     try {
       await _camera!.startVideoRecording();
@@ -162,7 +201,7 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
       setState(() => _recording = false);
       final response = await ApiClient.postMultipart(
         AppConstants.verificationVideoEndpoint,
-        fields: <String, dynamic>{},
+        fields: <String, dynamic>{'challenge_token': _challengeToken},
         fileFieldName: 'verification_video',
         filePath: file.path,
       );
@@ -189,7 +228,7 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
     } catch (e) {
       _message(
         e is ApiException
-            ? e.message
+            ? e.displayMessage
             : 'ارسال ویدئو انجام نشد. دوباره تلاش کنید.',
       );
     } finally {
@@ -198,6 +237,7 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
           _busy = false;
           _recording = _camera?.value.isRecordingVideo ?? false;
           _remaining = _maxSeconds;
+          _challengeToken = '';
         });
       }
     }
@@ -252,6 +292,19 @@ class _VideoVerificationScreenState extends State<VideoVerificationScreen> {
                       label: const Text('مشاهده ویدئوی آموزشی نحوه احراز هویت'),
                     ),
                   ),
+                TextField(
+                  controller: _serial,
+                  enabled: !_busy && !_recording,
+                  decoration: const InputDecoration(
+                    labelText: 'سریال پشت کارت ملی یا کد رهگیری رسید',
+                    helperText:
+                        'اگر قبلاً ثبت کرده‌اید، می‌توانید خالی بگذارید.',
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: _busy || _recording ? null : _fetchChallenge,
+                  child: const Text('دریافت متن جدید ضبط'),
+                ),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(18),
