@@ -1,4 +1,5 @@
 class AppConstants {
+  static const String verificationVideoEndpoint = '/api/v1/driver/verification-video';
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'https://amutapp.com/amutadmin',
