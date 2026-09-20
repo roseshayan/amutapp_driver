@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/api_client.dart';
-import '../../core/app_info.dart';
 import '../../core/constants.dart';
 import '../../core/theme.dart';
 
@@ -329,7 +328,9 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
             return;
           }
 
-          if (AppInfoCache.requireVerificationVideo) {
+          final me = await ApiClient.getJson(AppConstants.meEndpoint);
+          if (!mounted) return;
+          if (me['onboarding']?['needs_verification_video'] == true) {
             context.go('/video-verify');
           } else {
             context.go('/dashboard');
