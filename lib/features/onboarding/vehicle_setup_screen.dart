@@ -221,16 +221,33 @@ class _VehicleSetupScreenState extends State<VehicleSetupScreen> {
 
         // اگر برگ است (زیرگروه یا آیتم بدون فرزند) با آیکون اختصاصی نمایش بده
         if (selectable) {
+          final iconUrl = it['icon_url']?.toString();
           out.add(
             DropdownMenuItem<int>(
               value: id,
               child: Row(
                 children: [
-                  Icon(
-                    _getVehicleIcon(title),
-                    color: Colors.grey.shade600,
-                    size: 20,
-                  ),
+                  if (iconUrl != null && iconUrl.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.network(
+                        iconUrl,
+                        width: 20,
+                        height: 20,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => Icon(
+                          _getVehicleIcon(title),
+                          color: Colors.grey.shade600,
+                          size: 20,
+                        ),
+                      ),
+                    )
+                  else
+                    Icon(
+                      _getVehicleIcon(title),
+                      color: Colors.grey.shade600,
+                      size: 20,
+                    ),
                   const SizedBox(width: 8),
                   Text(prefix + title),
                 ],

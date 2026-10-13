@@ -240,6 +240,7 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
                     _buildDetailRow(
                       'نوع بارگیر:',
                       _loadDetails!['vehicle_title'],
+                      iconUrl: _loadDetails!['vehicle_icon_url']?.toString(),
                     ),
                     _buildDetailRow('وزن بار:', _loadDetails!['weight_text']),
                     _buildDetailRow(
@@ -392,7 +393,7 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, {String? iconUrl}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -400,10 +401,34 @@ class _LoadDetailsScreenState extends State<LoadDetailsScreen> {
         children: [
           Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-              textAlign: TextAlign.left,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (iconUrl != null && iconUrl.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Image.network(
+                      iconUrl,
+                      width: 20,
+                      height: 20,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(
+                        Icons.local_shipping_outlined,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
+                  child: Text(
+                    value,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

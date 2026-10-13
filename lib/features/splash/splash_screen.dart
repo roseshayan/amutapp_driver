@@ -10,6 +10,7 @@ import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/storage.dart';
 import '../../core/theme.dart';
+import '../../core/push_notification_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -398,6 +399,9 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _checkLoginState() async {
     final token = await AppStorage.getToken();
     if (token != null && token.isNotEmpty) {
+      // ثبت توکن نوتیفیکیشن در پس‌زمینه
+      PushNotificationService.registerDeviceToken(appType: 'driver');
+
       try {
         // پینگ به سرور برای دریافت وضعیت دقیق مراحل ثبت‌نام کاربر
         final meResponse = await ApiClient.getJson(AppConstants.meEndpoint);

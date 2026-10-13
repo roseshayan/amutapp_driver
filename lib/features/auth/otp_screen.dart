@@ -10,6 +10,7 @@ import '../../core/api_client.dart';
 import '../../core/constants.dart';
 import '../../core/storage.dart';
 import '../../core/theme.dart';
+import '../../core/push_notification_service.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phone;
@@ -135,6 +136,9 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
         if (res['profile'] != null) {
           await AppStorage.setUserJson(jsonEncode(res['profile']));
         }
+
+        // ثبت توکن دستگاه در پس‌زمینه
+        PushNotificationService.registerDeviceToken(appType: 'driver');
 
         // بررسی وضعیت همه مراحل onboarding، نه فقط احراز هویت.
         bool isIdentityVerified = false;

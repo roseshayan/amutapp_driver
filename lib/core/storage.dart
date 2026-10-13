@@ -40,9 +40,16 @@ class AppStorage {
     return id;
   }
 
+  static const _pushTokenKey = 'push_token';
+  static Future<void> setPushToken(String token) =>
+      _s.write(key: _pushTokenKey, value: token);
+  static Future<String?> getPushToken() => _s.read(key: _pushTokenKey);
+  static Future<void> clearPushToken() => _s.delete(key: _pushTokenKey);
+
   static Future<void> clearAll() async {
     await _s.delete(key: _tokenKey);
     await _s.delete(key: _refreshTokenKey);
     await _s.delete(key: _userKey);
+    await _s.delete(key: _pushTokenKey);
   }
 }

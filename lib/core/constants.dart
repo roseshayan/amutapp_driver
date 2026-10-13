@@ -37,6 +37,7 @@ class AppConstants {
   static const String unreadNotifsCountEndpoint =
       '/api/v1/me/notifications/unread-count';
   static const String notificationsEndpoint = '/api/v1/me/notifications';
+  static const String devicePushTokenEndpoint = '/api/v1/devices/push-token';
 
   /// متد کمکی برای اصلاح لینک‌هایی که ممکن است نسبی باشند یا هنوز دامنه‌ی تستی داشته باشند
   static String fixUrl(String? url) {

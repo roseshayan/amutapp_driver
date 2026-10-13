@@ -316,15 +316,32 @@ class _VehicleInfoScreenState extends State<VehicleInfoScreen> {
                     ),
                     items: _vehicleTypes.map((v) {
                       final title = v['title']?.toString() ?? 'نامشخص';
+                      final iconUrl = v['icon_url']?.toString();
                       return DropdownMenuItem<int>(
                         value: _asInt(v['id']),
                         child: Row(
                           children: [
-                            Icon(
-                              _getVehicleIcon(title),
-                              color: Colors.grey.shade600,
-                              size: 20,
-                            ),
+                            if (iconUrl != null && iconUrl.isNotEmpty)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.network(
+                                  iconUrl,
+                                  width: 20,
+                                  height: 20,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, _, _) => Icon(
+                                    _getVehicleIcon(title),
+                                    color: Colors.grey.shade600,
+                                    size: 20,
+                                  ),
+                                ),
+                              )
+                            else
+                              Icon(
+                                _getVehicleIcon(title),
+                                color: Colors.grey.shade600,
+                                size: 20,
+                              ),
                             const SizedBox(width: 10),
                             Text(title),
                           ],

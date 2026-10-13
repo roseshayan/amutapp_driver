@@ -33,7 +33,6 @@ class LoadCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -53,6 +52,63 @@ class LoadCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (load['vehicle_title'] != null &&
+                    load['vehicle_title'].toString().isNotEmpty) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (load['vehicle_icon_url'] != null &&
+                            load['vehicle_icon_url'].toString().isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.network(
+                                load['vehicle_icon_url'].toString(),
+                                width: 16,
+                                height: 16,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => const Icon(
+                                  Icons.local_shipping_outlined,
+                                  size: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          const Padding(
+                            padding: EdgeInsets.only(left: 4),
+                            child: Icon(
+                              Icons.local_shipping_outlined,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        Text(
+                          load['vehicle_title'].toString(),
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,

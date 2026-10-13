@@ -227,6 +227,18 @@ class ApiClient {
     }
   }
 
+  static Future<Map<String, dynamic>> deleteJson(
+    String path, [
+    Map<String, dynamic>? data,
+  ]) async {
+    try {
+      final r = await dio.delete(path, data: data);
+      return _asJsonMap(r.data);
+    } on DioException catch (e) {
+      throw _asApiException(e);
+    }
+  }
+
   static Future<Map<String, dynamic>> postMultipart(
     String path, {
     required String fileFieldName,

@@ -57,66 +57,184 @@ class _LoadsListScreenState extends State<LoadsListScreen> {
     });
   }
 
+  static final Map<String, String> _enCityToFa = {
+    'tehran': 'تهران',
+    'isfahan': 'اصفهان',
+    'esfahan': 'اصفهان',
+    'mashhad': 'مشهد',
+    'karaj': 'کرج',
+    'shiraz': 'شیراز',
+    'tabriz': 'تبریز',
+    'qom': 'قم',
+    'ahvaz': 'اهواز',
+    'ahwaz': 'اهواز',
+    'kermanshah': 'کرمانشاه',
+    'urmia': 'ارومیه',
+    'orumiyeh': 'ارومیه',
+    'rasht': 'رشت',
+    'zahedan': 'زاهدان',
+    'hamadan': 'همدان',
+    'kerman': 'کرمان',
+    'yazd': 'یزد',
+    'ardabil': 'اردبیل',
+    'bandar abbas': 'بندرعباس',
+    'arak': 'اراک',
+    'zanjan': 'زنجان',
+    'sanandaj': 'سنندج',
+    'qazvin': 'قزوین',
+    'khorramabad': 'خرم آباد',
+    'sari': 'ساری',
+    'gorgan': 'گرگان',
+    'bojnurd': 'بجنورد',
+    'birjand': 'بیرجند',
+    'ilam': 'ایلام',
+    'shahr-e kord': 'شهرکرد',
+    'shahrekord': 'شهرکرد',
+    'semnan': 'سمنان',
+    'bushehr': 'بوشهر',
+    'yasuj': 'یاسوج',
+    'chabahar': 'چابهار',
+    'kashan': 'کاشان',
+    'abadan': 'آبادان',
+    'dezful': 'دزفول',
+    'neyshabur': 'نیشابور',
+    'babol': 'بابل',
+    'amol': 'آمل',
+    'qaem shahr': 'قائم شهر',
+    'saveh': 'ساوه',
+    'varamin': 'ورامین',
+    'shahriar': 'شهریار',
+    'qods': 'قدس',
+    'malard': 'ملارد',
+    'pakdasht': 'پاکدشت',
+    'eslamshahr': 'اسلامشهر',
+    'rey': 'ری',
+    'damavand': 'دماوند',
+    'firoozkooh': 'فیروزکوه',
+  };
+
+  String _cleanCityName(String raw) {
+    var name = raw.trim();
+    name = name.replaceAll(RegExp(r'^(شهرستان|شهر|استان)\s+'), '');
+    name = name.replaceAll(RegExp(r'\s+(City|Province|County|Shahrestan)$', caseSensitive: false), '');
+    name = name.trim();
+    final lower = name.toLowerCase();
+    if (_enCityToFa.containsKey(lower)) {
+      return _enCityToFa[lower]!;
+    }
+    return name;
+  }
+
+  Future<String?> _resolveCityName(Position position) async {
+    try {
+      await setLocaleIdentifier('fa_IR');
+    } catch (_) {}
+
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isNotEmpty) {
+        for (final p in placemarks) {
+          final cand = p.locality ?? p.subAdministrativeArea ?? p.administrativeArea;
+          if (cand != null && cand.trim().isNotEmpty) {
+            final cleaned = _cleanCityName(cand);
+            if (cleaned.isNotEmpty) return cleaned;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Placemark lookup error: $e');
+    }
+
+    return null;
+  }
+
   Future<void> _determineLocalPositionAndFetch() async {
     try {
-      await Future.microtask(() async {
-        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) {
-          _fallbackToAllLoads();
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _fallbackToAllLoads(message: 'موقعیت مکانی دستگاه غیرفعال است. همه بارها نمایش داده شدند.');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          _fallbackToAllLoads(message: 'مجوز موقعیت مکانی داده نشد. همه بارها نمایش داده شدند.');
           return;
         }
+      }
 
-        LocationPermission permission = await Geolocator.checkPermission();
-        if (permission == LocationPermission.denied) {
-          permission = await Geolocator.requestPermission();
-          if (permission == LocationPermission.denied ||
-              permission == LocationPermission.deniedForever) {
-            _fallbackToAllLoads();
+      // ۱) اول موقعیت کش‌شده قبلی را تست می‌کنیم (بدون مکث)
+      Position? position = await Geolocator.getLastKnownPosition();
+
+      // ۲) اگر کش نبود، موقعیت لحظه‌ای را با دقت متوسط دریافت می‌کنیم
+      position ??= await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+
+      final cityName = await _resolveCityName(position);
+      if (cityName != null && cityName.isNotEmpty && mounted) {
+        final searchRes = await ApiClient.getJson(
+          '${AppConstants.citiesSearchEndpoint}?q=${Uri.encodeComponent(cityName)}',
+        );
+
+        if (searchRes['ok'] == true &&
+            searchRes['items'] is List &&
+            (searchRes['items'] as List).isNotEmpty) {
+          final firstCity = searchRes['items'][0];
+          final detectedCityId = int.tryParse(firstCity['id'].toString());
+          final detectedCityName = firstCity['text'].toString();
+
+          if (mounted && detectedCityId != null) {
+            setState(() {
+              _originCityId = detectedCityId;
+              _originCityName = detectedCityName;
+              _infoMessage = 'در حال دریافت بارهای مبدا $detectedCityName...';
+            });
+
+            await _fetchLoads();
+
+            // بررسی: اگر باری برای این مبدا نبود، خودکار همه بارها را می‌آوریم
+            if (mounted && _loads.isEmpty) {
+              setState(() {
+                _originCityId = null;
+                _originCityName = 'همه مبداها';
+                _infoMessage = 'باری از مبدا $detectedCityName یافت نشد. همه بارها نمایش داده شدند.';
+              });
+              await _fetchLoads();
+            } else if (mounted && _loads.isNotEmpty) {
+              setState(() {
+                _infoMessage = 'بارهای مبدا $detectedCityName (بر اساس موقعیت شما)';
+              });
+            }
             return;
           }
         }
+      }
 
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.low,
-        );
-
-        List<Placemark> placemarks = await placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        );
-
-        if (placemarks.isNotEmpty && mounted) {
-          final String? cityName = placemarks.first.locality;
-          if (cityName != null && cityName.isNotEmpty) {
-            final searchRes = await ApiClient.getJson(
-              '${AppConstants.citiesSearchEndpoint}?q=$cityName',
-            );
-            if (searchRes['ok'] == true &&
-                (searchRes['items'] as List).isNotEmpty) {
-              final firstCity = searchRes['items'][0];
-              if (mounted) {
-                setState(() {
-                  _originCityId = int.tryParse(firstCity['id'].toString());
-                  _originCityName = firstCity['text'].toString();
-                });
-              }
-              _fetchLoads();
-              return;
-            }
-          }
-        }
-        _fallbackToAllLoads();
-      }).timeout(const Duration(seconds: 4));
-    } catch (_) {
+      _fallbackToAllLoads(message: 'تشخیص شهر انجام نشد. همه بارها نمایش داده شدند.');
+    } catch (e) {
+      debugPrint('Location detection error: $e');
       _fallbackToAllLoads();
     }
   }
 
-  void _fallbackToAllLoads() {
+  void _fallbackToAllLoads({String? message}) {
     if (!mounted) return;
     setState(() {
       _originCityName = 'همه مبداها';
       _originCityId = null;
+      if (message != null) {
+        _infoMessage = message;
+      }
     });
     _fetchLoads();
   }
